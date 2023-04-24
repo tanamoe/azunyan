@@ -1,0 +1,37 @@
+{
+  "name": "music",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "register": "node ./build/deploy.js",
+    "run": "node ./build/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@discord-player/extractor": "^4.2.1",
+    "@discordjs/builders": "^1.6.1",
+    "@discordjs/opus": "^0.9.0",
+    "discord-api-types": "^0.37.39",
+    "discord-player": "^6.2.1",
+    "discord.js": "^14.9.0",
+    "dotenv": "^16.0.3",
+    "fuzzysort": "^2.0.4",
+    "ytdl-core": "^4.11.4"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.0",
+    "@typescript-eslint/parser": "^5.59.0",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "prettier": "^2.8.7",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  }
+}
