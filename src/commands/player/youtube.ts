@@ -5,19 +5,17 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { QueryType, useMasterPlayer } from "discord-player";
-import fuzzysort from "fuzzysort";
-import { glob } from "glob";
 
 import { ACommand } from "../../types/command.js";
 
 export const command: ACommand = {
   data: new SlashCommandBuilder()
-    .setName("local")
-    .setDescription("Azu-nyan sẽ tìm và thêm một bài từ file trong hệ thống~")
+    .setName("youtube")
+    .setDescription("Azu-nyan sẽ tìm và thêm một bài từ YouTube~")
     .addStringOption((option) =>
       option
         .setName("query")
-        .setDescription("Tên file để tìm~")
+        .setDescription("Tên để tìm~")
         .setRequired(true)
         .setAutocomplete(true)
     ),
@@ -45,7 +43,7 @@ export const command: ACommand = {
 
     try {
       const { track } = await player.play(channel, query, {
-        searchEngine: QueryType.FILE,
+        searchEngine: QueryType.YOUTUBE_VIDEO,
       });
 
       embed.setAuthor({
@@ -57,6 +55,7 @@ export const command: ACommand = {
       embed.setColor("#B28B84");
       embed.setTitle("Thêm vào danh sách phát");
       embed.setDescription(`\`${track.title}\``);
+      embed.setThumbnail(track.thumbnail);
 
       return await interaction.editReply({ embeds: [embed] });
     } catch (e) {
@@ -73,19 +72,23 @@ export const command: ACommand = {
     // assigning query
     const query = interaction.options.getString("query", true);
 
-    // getting all files
-    const files = await glob("music/**/*.{mp3,wav,aac,flac}");
-
     // getting results
-    const search = fuzzysort.go(query, files);
+    const search = await player.search(query, {
+      requestedBy: interaction.user,
+      searchEngine: QueryType.YOUTUBE,
+    });
 
-    const results = search.slice(0, 10).map((result) => ({
-      name:
-        result.target
-          .replace("music/", "")
-          .substring(0, result.target.lastIndexOf(".")) || result.target,
-      value: result.target,
-    }));
+    const results: {
+      name: string;
+      value: string;
+    }[] = [];
+
+    search.tracks.slice(0, 10).map((result) =>
+      results.push({
+        name: `${result.author} - ${result.title}`,
+        value: result.url,
+      })
+    );
 
     return interaction.respond(results);
   },

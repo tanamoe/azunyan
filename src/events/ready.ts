@@ -1,8 +1,14 @@
-import { Events } from "discord.js";
-import { AEvent } from "../types/event.js";
 import { register } from "../register.js";
-import type { AClient } from "../types/client.js";
+
+import { Events } from "discord.js";
 import { Player } from "discord-player";
+import {
+  AttachmentExtractor,
+  YouTubeExtractor,
+} from "@discord-player/extractor";
+
+import type { AEvent } from "../types/event.js";
+import type { AClient } from "../types/client.js";
 
 export const event: AEvent = {
   name: Events.ClientReady,
@@ -11,6 +17,9 @@ export const event: AEvent = {
     await register(client);
 
     const player = new Player(client);
+
+    player.extractors.register(YouTubeExtractor, {});
+    player.extractors.register(AttachmentExtractor, {});
 
     console.log(`Ready! Logged in as ${client.user!.tag}`);
   },
