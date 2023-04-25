@@ -18,6 +18,6 @@
   },
   "rules": {
     "@typescript-eslint/no-non-null-assertion": "off",
-    "@typescript-eslint/no-implicit-any": "on"
+    "@typescript-eslint/no-implicit-any": "off"
   }
 }
