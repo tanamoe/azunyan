@@ -1,9 +1,9 @@
-import { useQueue } from "discord-player";
+import type { PlayerCommand } from "../../types/command.js";
 
 import { type CommandInteraction, SlashCommandBuilder } from "discord.js";
-import type { ACommand } from "../../types/command.js";
+import { useQueue } from "discord-player";
 
-export const command: ACommand = {
+export const command: PlayerCommand = {
   data: new SlashCommandBuilder()
     .setName("skip")
     .setDescription("Azu-nyan sẽ cho qua bài này~"),
@@ -17,6 +17,6 @@ export const command: ACommand = {
 
     queue.node.skip();
 
-    await interaction.editReply("Đã cho qua <3~");
+    return await interaction.editReply("Đã cho qua <3~");
   },
 };

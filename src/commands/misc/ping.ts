@@ -1,7 +1,8 @@
-import { type CommandInteraction, SlashCommandBuilder } from "discord.js";
-import { ACommand } from "../../types/command.js";
+import type { PlayerCommand } from "../../types/command.js";
 
-export const command: ACommand = {
+import { type CommandInteraction, SlashCommandBuilder } from "discord.js";
+
+export const command: PlayerCommand = {
   data: new SlashCommandBuilder()
     .setName("ping")
     .setDescription("Replies with Pong!"),

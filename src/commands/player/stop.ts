@@ -1,9 +1,9 @@
-import { useQueue } from "discord-player";
+import type { PlayerCommand } from "../../types/command.js";
 
 import { type CommandInteraction, SlashCommandBuilder } from "discord.js";
-import type { ACommand } from "../../types/command.js";
+import { useQueue } from "discord-player";
 
-export const command: ACommand = {
+export const command: PlayerCommand = {
   data: new SlashCommandBuilder()
     .setName("stop")
     .setDescription("Azu-nyan sẽ dừng nhạc và đi ngủ~"),
@@ -17,6 +17,6 @@ export const command: ACommand = {
 
     queue.delete();
 
-    await interaction.editReply("Sayonanya <3~");
+    return await interaction.editReply("Sayonanya <3~");
   },
 };

@@ -1,13 +1,22 @@
+import type {
+  AutocompletePlayerCommand,
+  PlayerCommand,
+} from "./types/command.js";
+import type { PlayerClient } from "./types/client.js";
+
+import { logger } from "./lib/logger.js";
+import { register } from "./lib/register.js";
+
 import fs from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
-
-import { Client, Collection, GatewayIntentBits } from "discord.js";
 import * as dotenv from "dotenv";
-
-import type { ACommand } from "./types/command.js";
-import type { AClient } from "./types/client.js";
-import type { AEvent } from "./types/event.js";
+import { Client, Collection, Events, GatewayIntentBits } from "discord.js";
+import { Player } from "discord-player";
+import {
+  AttachmentExtractor,
+  YouTubeExtractor,
+} from "@discord-player/extractor";
 
 dotenv.config();
 
@@ -21,7 +30,7 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
-}) as AClient;
+}) as PlayerClient;
 
 // Registering commands
 client.commands = new Collection();
@@ -37,7 +46,8 @@ for (const folder of commandFolders) {
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
 
-    const { command }: { command: ACommand } = await import(filePath);
+    const { command }: { command: PlayerCommand | AutocompletePlayerCommand } =
+      await import(filePath);
 
     if ("data" in command && "execute" in command) {
       client.commands.set(command.data.name, command);
@@ -49,23 +59,52 @@ for (const folder of commandFolders) {
   }
 }
 
-// Registering events
-const eventsPath = path.join(__dirname, "events");
-const eventFiles = fs
-  .readdirSync(eventsPath)
-  .filter((file) => file.endsWith(".js"));
+// Handle interactions
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isAutocomplete()) {
+    const command = (interaction.client as PlayerClient).commands.get(
+      interaction.commandName
+    ) as AutocompletePlayerCommand;
 
-for (const file of eventFiles) {
-  const filePath = path.join(eventsPath, file);
+    if (!command) {
+      logger.error(`Không tìm thấy lệnh ${interaction.commandName}`);
+      return;
+    }
 
-  const { event }: { event: AEvent } = await import(filePath);
-
-  if (event.once) {
-    client.once(event.name, (...args) => event.execute(...args));
-  } else {
-    client.on(event.name, (...args) => event.execute(...args));
+    try {
+      await command.autocomplete(interaction);
+    } catch (e) {
+      logger.error(e);
+    }
   }
-}
+
+  if (interaction.isChatInputCommand()) {
+    const command = (interaction.client as PlayerClient).commands.get(
+      interaction.commandName
+    );
+
+    if (!command) {
+      logger.error(`Không tìm thấy lệnh ${interaction.commandName} nyaaaaa~`);
+      return;
+    }
+
+    try {
+      await command.execute(interaction);
+    } catch (e) {
+      logger.error(e);
+    }
+  }
+});
+
+// Start the client
+await register(client);
+
+const player = new Player(client);
+
+player.extractors.register(YouTubeExtractor, {});
+player.extractors.register(AttachmentExtractor, {});
+
+logger.info("Ready.");
 
 // Start the bot
 client.login(DISCORD_TOKEN);

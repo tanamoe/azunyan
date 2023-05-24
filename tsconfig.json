@@ -3,11 +3,6 @@
     "target": "ES2017",
     "module": "NodeNext",
     "rootDir": "./src",
-    "baseUrl": "./src",
-    "paths": {
-      "@lib/*": ["lib/*"],
-      "@types/*": ["types/*"]
-    },
     "outDir": "./build",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

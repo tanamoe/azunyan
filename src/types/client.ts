@@ -1,6 +1,6 @@
+import type { AutocompletePlayerCommand, PlayerCommand } from "./command.js";
 import type { Client, Collection } from "discord.js";
-import type { ACommand } from "./command.js";
 
-export interface AClient extends Client {
-  commands: Collection<string, ACommand>;
+export interface PlayerClient extends Client {
+  commands: Collection<string, PlayerCommand | AutocompletePlayerCommand>;
 }

@@ -1,9 +1,13 @@
-import { REST, Routes } from "discord.js";
+import type { PlayerClient } from "../types/client.js";
+
+import { logger } from "../lib/logger.js";
+
 import * as dotenv from "dotenv";
-import type { AClient } from "./types/client.js";
+import { REST, Routes } from "discord.js";
+
 dotenv.config();
 
-export const register = async (client: AClient) => {
+export const register = async (client: PlayerClient) => {
   if (
     !process.env.DISCORD_TOKEN ||
     !process.env.DISCORD_CLIENT_ID ||
@@ -19,7 +23,7 @@ export const register = async (client: AClient) => {
   const rest = new REST().setToken(DISCORD_TOKEN);
 
   try {
-    console.log(
+    logger.info(
       `Started refreshing ${client.commands.size} application (/) commands.`
     );
 
@@ -29,9 +33,9 @@ export const register = async (client: AClient) => {
       { body: client.commands.map((command) => command.data.toJSON()) }
     );
 
-    console.log(`Successfully reloaded application (/) commands.`);
+    logger.info(`Successfully reloaded application (/) commands.`);
   } catch (error) {
     // And of course, make sure you catch and log any errors!
-    console.error(error);
+    logger.error(error);
   }
 };
