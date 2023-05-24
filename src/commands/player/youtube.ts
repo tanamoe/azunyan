@@ -1,3 +1,7 @@
+import type { ACommand } from "../../types/command.js";
+
+import { logger } from "@lib/logger.js";
+
 import {
   type ChatInputCommandInteraction,
   type GuildMember,
@@ -5,8 +9,6 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { QueryType, useMasterPlayer } from "discord-player";
-
-import { ACommand } from "../../types/command.js";
 
 export const command: ACommand = {
   data: new SlashCommandBuilder()
@@ -59,9 +61,9 @@ export const command: ACommand = {
 
       return await interaction.editReply({ embeds: [embed] });
     } catch (e) {
-      return await interaction.editReply(
-        `Có chuyện gì vừa xảy ra TwT... Chi tiết-nya: ${e}`
-      );
+      logger.error(e);
+
+      return await interaction.editReply("Có chuyện gì vừa xảy ra TwT...");
     }
   },
   async autocomplete(interaction) {
