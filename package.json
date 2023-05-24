@@ -6,8 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "register": "node ./build/deploy.js",
-    "start": "node ./build/index.js",
+    "start": "ts-node-esm src/index.ts",
     "lint": "eslint \"**/*.{js,ts}\"",
     "prepare": "husky install"
   },
@@ -28,8 +27,8 @@
     "dotenv": "^16.0.3",
     "fuzzysort": "^2.0.4",
     "glob": "^10.2.2",
-    "ytdl-core": "tanamoe/node-ytdl-core#fix/youtube-extract-function",
-    "pino": "^8.14.1"
+    "pino": "^8.14.1",
+    "ytdl-core": "tanamoe/node-ytdl-core#fix/youtube-extract-function"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.1",
