@@ -29,8 +29,8 @@ dependencies:
     specifier: ^10.2.2
     version: 10.2.2
   ytdl-core:
-    specifier: link:tanamoe/node-ytdl-core/tree/fix/youtube-extract-function
-    version: link:tanamoe/node-ytdl-core/tree/fix/youtube-extract-function
+    specifier: tanamoe/node-ytdl-core#fix/youtube-extract-function
+    version: github.com/tanamoe/node-ytdl-core/6caec2e1e21809d5457b66919e01b926a313b75b
 
 devDependencies:
   '@commitlint/cli':
@@ -3230,4 +3230,15 @@ packages:
 
   /youtube-sr@4.3.4:
     resolution: {integrity: sha512-olSYcR80XigutCrePEXBX3/RJJrWfonJQj7+/ggBiWU0CzTDLE1q8+lpWTWCG0JpzhzILp/IB/Bq/glGqqr1TQ==}
+    dev: false
+
+  github.com/tanamoe/node-ytdl-core/6caec2e1e21809d5457b66919e01b926a313b75b:
+    resolution: {tarball: https://codeload.github.com/tanamoe/node-ytdl-core/tar.gz/6caec2e1e21809d5457b66919e01b926a313b75b}
+    name: ytdl-core
+    version: 0.0.0-development
+    engines: {node: '>=12'}
+    dependencies:
+      m3u8stream: 0.8.6
+      miniget: 4.2.2
+      sax: 1.2.4
     dev: false

@@ -28,7 +28,7 @@
     "dotenv": "^16.0.3",
     "fuzzysort": "^2.0.4",
     "glob": "^10.2.2",
-    "ytdl-core": "link:tanamoe/node-ytdl-core/tree/fix/youtube-extract-function"
+    "ytdl-core": "tanamoe/node-ytdl-core#fix/youtube-extract-function"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.1",
