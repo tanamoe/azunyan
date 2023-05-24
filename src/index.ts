@@ -4,8 +4,8 @@ import type {
 } from "./types/command.js";
 import type { PlayerClient } from "./types/client.js";
 
-import { logger } from "@lib/logger.js";
-import { register } from "@lib/register.js";
+import { logger } from "./lib/logger.js";
+import { register } from "./lib/register.js";
 
 import fs from "fs";
 import path, { dirname } from "path";
@@ -104,7 +104,7 @@ const player = new Player(client);
 player.extractors.register(YouTubeExtractor, {});
 player.extractors.register(AttachmentExtractor, {});
 
-logger.info(`Ready! Logged in as ${client.user!.tag}`);
+logger.info("Ready.");
 
 // Start the bot
 client.login(DISCORD_TOKEN);

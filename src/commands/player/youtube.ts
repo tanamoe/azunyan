@@ -1,6 +1,6 @@
 import type { AutocompletePlayerCommand } from "../../types/command.js";
 
-import { logger } from "@lib/logger.js";
+import { logger } from "../../lib/logger.js";
 
 import {
   type ChatInputCommandInteraction,

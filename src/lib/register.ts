@@ -1,6 +1,6 @@
 import type { PlayerClient } from "../types/client.js";
 
-import { logger } from "@lib/logger.js";
+import { logger } from "../lib/logger.js";
 
 import * as dotenv from "dotenv";
 import { REST, Routes } from "discord.js";
