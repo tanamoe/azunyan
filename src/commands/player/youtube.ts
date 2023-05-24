@@ -12,7 +12,7 @@ import { QueryType, useMasterPlayer } from "discord-player";
 
 export const youtubeCommand: AutocompletePlayerCommand = {
   data: new SlashCommandBuilder()
-    .setName("youtube")
+    .setName("yt")
     .setDescription("Azu-nyan sẽ tìm và thêm một bài từ YouTube~")
     .addStringOption((option) =>
       option
