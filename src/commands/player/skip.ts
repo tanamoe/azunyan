@@ -3,7 +3,7 @@ import type { PlayerCommand } from "../../types/command.js";
 import { type CommandInteraction, SlashCommandBuilder } from "discord.js";
 import { useQueue } from "discord-player";
 
-export const command: PlayerCommand = {
+export const skipCommand: PlayerCommand = {
   data: new SlashCommandBuilder()
     .setName("skip")
     .setDescription("Azu-nyan sẽ cho qua bài này~"),

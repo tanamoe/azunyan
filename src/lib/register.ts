@@ -1,4 +1,4 @@
-import type { PlayerClient } from "../types/client.js";
+import type { PlayerCommand } from "../types/command.js";
 
 import { logger } from "../lib/logger.js";
 
@@ -7,7 +7,7 @@ import { REST, Routes } from "discord.js";
 
 dotenv.config();
 
-export const register = async (client: PlayerClient) => {
+export const register = async (commands: PlayerCommand[]) => {
   if (
     !process.env.DISCORD_TOKEN ||
     !process.env.DISCORD_CLIENT_ID ||
@@ -24,13 +24,13 @@ export const register = async (client: PlayerClient) => {
 
   try {
     logger.info(
-      `Started refreshing ${client.commands.size} application (/) commands.`
+      `Started refreshing ${commands.length} application (/) commands.`
     );
 
     // The put method is used to fully refresh all commands in the guild with the current set
     await rest.put(
       Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DICORD_GUILD_ID),
-      { body: client.commands.map((command) => command.data.toJSON()) }
+      { body: commands.map((command) => command.data.toJSON()) }
     );
 
     logger.info(`Successfully reloaded application (/) commands.`);

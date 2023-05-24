@@ -10,7 +10,7 @@ import {
 } from "discord.js";
 import { QueryType, useMasterPlayer } from "discord-player";
 
-export const command: AutocompletePlayerCommand = {
+export const youtubeCommand: AutocompletePlayerCommand = {
   data: new SlashCommandBuilder()
     .setName("youtube")
     .setDescription("Azu-nyan sẽ tìm và thêm một bài từ YouTube~")
@@ -49,15 +49,18 @@ export const command: AutocompletePlayerCommand = {
       });
 
       embed.setAuthor({
-        name: interaction.member!.user.username,
+        name: "Thêm vào danh sách phát",
+      });
+      embed.setColor("#FF0000");
+      embed.setTitle(track.title);
+      embed.setURL(track.url);
+      embed.setThumbnail(track.thumbnail);
+      embed.setFooter({
+        text: interaction.member!.user.username,
         iconURL: `https://cdn.discordapp.com/avatars/${
           interaction.member!.user.id
         }/${interaction.member!.user.avatar!}.png`,
       });
-      embed.setColor("#B28B84");
-      embed.setTitle("Thêm vào danh sách phát");
-      embed.setDescription(`\`${track.title}\``);
-      embed.setThumbnail(track.thumbnail);
 
       return await interaction.editReply({ embeds: [embed] });
     } catch (e) {
