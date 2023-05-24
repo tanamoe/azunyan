@@ -2,26 +2,28 @@ import type {
   AutocompletePlayerCommand,
   PlayerCommand,
 } from "./types/command.js";
-import type { PlayerClient } from "./types/client.js";
 
 import { logger } from "./lib/logger.js";
 import { register } from "./lib/register.js";
 
-import fs from "fs";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
 import * as dotenv from "dotenv";
-import { Client, Collection, Events, GatewayIntentBits } from "discord.js";
+import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
 import { Player } from "discord-player";
 import {
   AttachmentExtractor,
   YouTubeExtractor,
 } from "@discord-player/extractor";
 
-dotenv.config();
+import { youtubeCommand } from "./commands/player/youtube.js";
+import { skipCommand } from "./commands/player/skip.js";
+import { stopCommand } from "./commands/player/stop.js";
+import { pingCommand } from "./commands/misc/ping.js";
+import {
+  attachmentCommand,
+  attachmentContextMenu,
+} from "./commands/player/attachment.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+dotenv.config();
 
 if (!process.env.DISCORD_TOKEN)
   throw new Error("Discord token is not defined.");
@@ -30,41 +32,26 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
-}) as PlayerClient;
+});
 
 // Registering commands
-client.commands = new Collection();
-const foldersPath = path.join(__dirname, "commands");
-const commandFolders = fs.readdirSync(foldersPath);
+const commands: PlayerCommand[] = [
+  youtubeCommand,
+  attachmentContextMenu,
+  attachmentCommand,
+  skipCommand,
+  stopCommand,
+  pingCommand,
+];
 
-for (const folder of commandFolders) {
-  const commandsPath = path.join(foldersPath, folder);
-  const commandFiles = fs
-    .readdirSync(commandsPath)
-    .filter((file) => file.endsWith(".js"));
-
-  for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
-
-    const { command }: { command: PlayerCommand | AutocompletePlayerCommand } =
-      await import(filePath);
-
-    if ("data" in command && "execute" in command) {
-      client.commands.set(command.data.name, command);
-    } else {
-      console.log(
-        `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`
-      );
-    }
-  }
-}
+await register(commands);
 
 // Handle interactions
 client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isAutocomplete()) {
-    const command = (interaction.client as PlayerClient).commands.get(
-      interaction.commandName
-    ) as AutocompletePlayerCommand;
+    const command = commands.find(
+      (command) => command.data.name === interaction.commandName
+    ) as AutocompletePlayerCommand | undefined;
 
     if (!command) {
       logger.error(`Không tìm thấy lệnh ${interaction.commandName}`);
@@ -78,9 +65,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 
-  if (interaction.isChatInputCommand()) {
-    const command = (interaction.client as PlayerClient).commands.get(
-      interaction.commandName
+  if (
+    interaction.isChatInputCommand() ||
+    interaction.isMessageContextMenuCommand()
+  ) {
+    const command = commands.find(
+      (command) => command.data.name === interaction.commandName
     );
 
     if (!command) {
@@ -97,8 +87,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 // Start the client
-await register(client);
-
 const player = new Player(client);
 
 player.extractors.register(YouTubeExtractor, {});
@@ -108,3 +96,14 @@ logger.info("Ready.");
 
 // Start the bot
 client.login(DISCORD_TOKEN);
+
+// Misc stuff. TODO: might refactor into a file
+player.events.on("playerStart", (_, track) => {
+  // Emitted when the player starts to play a song
+  client.user?.setActivity(track.title, { type: ActivityType.Listening });
+});
+
+player.events.on("emptyQueue", () => {
+  // Emitted when the player queue has finished
+  client.user?.setActivity(undefined);
+});
