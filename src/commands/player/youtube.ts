@@ -1,4 +1,4 @@
-import type { ACommand } from "../../types/command.js";
+import type { AutocompletePlayerCommand } from "../../types/command.js";
 
 import { logger } from "@lib/logger.js";
 
@@ -10,7 +10,7 @@ import {
 } from "discord.js";
 import { QueryType, useMasterPlayer } from "discord-player";
 
-export const command: ACommand = {
+export const command: AutocompletePlayerCommand = {
   data: new SlashCommandBuilder()
     .setName("youtube")
     .setDescription("Azu-nyan sẽ tìm và thêm một bài từ YouTube~")
