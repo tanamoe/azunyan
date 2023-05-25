@@ -27,7 +27,7 @@ export const attachmentContextMenu: PlayerCommand = {
     if (!attachment)
       return await interaction.editReply("Tin nhắn này không có nhạc T^T");
 
-    if (attachment.name.match(/^[^.]+\.(mp3|m4a|ogg|wav|flac|aac)$/g) == null)
+    if (attachment.name.match(/^.+\.(mp3|m4a|ogg|wav|flac|aac)$/g) == null)
       return await interaction.editReply("Định dạng chưa được hỗ trợ T^T");
 
     // create embed
