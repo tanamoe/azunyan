@@ -22,6 +22,7 @@ import {
   attachmentCommand,
   attachmentContextMenu,
 } from "./commands/player/attachment.js";
+import { queueCommand } from "./commands/player/queue.js";
 
 dotenv.config();
 
@@ -42,6 +43,7 @@ const commands: PlayerCommand[] = [
   skipCommand,
   stopCommand,
   pingCommand,
+  queueCommand,
 ];
 
 await register(commands);
@@ -80,6 +82,23 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     try {
       await command.execute(interaction);
+    } catch (e) {
+      logger.error(e);
+    }
+  }
+
+  if (interaction.isButton()) {
+    const action = commands.find(
+      (action) => action.data.name === interaction.customId
+    );
+
+    if (!action) {
+      logger.error(`Không thực thi được hành động ${interaction.customId}`);
+      return;
+    }
+
+    try {
+      await action.execute(interaction);
     } catch (e) {
       logger.error(e);
     }

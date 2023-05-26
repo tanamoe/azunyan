@@ -5,11 +5,15 @@ import { logger } from "../../lib/logger.js";
 import {
   type GuildMember,
   type MessageContextMenuCommandInteraction,
+  type MessageActionRowComponentBuilder,
   EmbedBuilder,
   ContextMenuCommandBuilder,
   ApplicationCommandType,
   SlashCommandBuilder,
   ChatInputCommandInteraction,
+  ButtonBuilder,
+  ActionRowBuilder,
+  ButtonStyle,
 } from "discord.js";
 import { useMasterPlayer } from "discord-player";
 
@@ -61,7 +65,20 @@ export const attachmentContextMenu: PlayerCommand = {
         }/${interaction.member!.user.avatar!}.png`,
       });
 
-      return await interaction.editReply({ embeds: [embed] });
+      const viewQueue = new ButtonBuilder()
+        .setCustomId("queue")
+        .setLabel("Xem queue")
+        .setStyle(ButtonStyle.Secondary);
+
+      const row =
+        new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(
+          viewQueue
+        );
+
+      return await interaction.editReply({
+        embeds: [embed],
+        components: [row],
+      });
     } catch (e) {
       logger.error(e);
 
@@ -119,7 +136,20 @@ export const attachmentCommand: PlayerCommand = {
         }/${interaction.member!.user.avatar!}.png`,
       });
 
-      return await interaction.editReply({ embeds: [embed] });
+      const viewQueue = new ButtonBuilder()
+        .setCustomId("queue")
+        .setLabel("Xem queue")
+        .setStyle(ButtonStyle.Secondary);
+
+      const row =
+        new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(
+          viewQueue
+        );
+
+      return await interaction.editReply({
+        embeds: [embed],
+        components: [row],
+      });
     } catch (e) {
       logger.error(e);
 

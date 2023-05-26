@@ -5,8 +5,12 @@ import { logger } from "../../lib/logger.js";
 import {
   type ChatInputCommandInteraction,
   type GuildMember,
+  type MessageActionRowComponentBuilder,
   EmbedBuilder,
   SlashCommandBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
 } from "discord.js";
 import { QueryType, useMasterPlayer } from "discord-player";
 
@@ -62,7 +66,20 @@ export const youtubeCommand: AutocompletePlayerCommand = {
         }/${interaction.member!.user.avatar!}.png`,
       });
 
-      return await interaction.editReply({ embeds: [embed] });
+      const viewQueue = new ButtonBuilder()
+        .setCustomId("queue")
+        .setLabel("Xem queue")
+        .setStyle(ButtonStyle.Secondary);
+
+      const row =
+        new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(
+          viewQueue
+        );
+
+      return await interaction.editReply({
+        embeds: [embed],
+        components: [row],
+      });
     } catch (e) {
       logger.error(e);
 
@@ -95,6 +112,6 @@ export const youtubeCommand: AutocompletePlayerCommand = {
       })
     );
 
-    return interaction.respond(results);
+    return await interaction.respond(results);
   },
 };
