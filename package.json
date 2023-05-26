@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "ts-node-esm src/index.ts",
+    "start": "node build/index.js",
+    "dev": "ts-node-esm src/index.ts",
     "lint": "eslint \"**/*.{js,ts}\"",
     "prepare": "husky install"
   },
