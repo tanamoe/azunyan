@@ -23,7 +23,7 @@ export const attachmentContextMenu: PlayerCommand = {
     .setType(ApplicationCommandType.Message),
   async execute(interaction: MessageContextMenuCommandInteraction) {
     // default to defer the reply
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
 
     // get the attachment
     const attachment = interaction.targetMessage.attachments.at(0);
