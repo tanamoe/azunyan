@@ -39,9 +39,9 @@ export const queueCommand: PlayerCommand = {
       embed.addFields(
         {
           name: "Sắp tới",
-          value: `${tracks.map(
-            (track, i) => `${i + 1}. [${track.title}](${track.url})`
-          )}`,
+          value: tracks
+            .map((track, i) => `${i + 1}. [${track.title}](${track.url})`)
+            .join("\n"),
         },
         {
           name: "Số lượng",
