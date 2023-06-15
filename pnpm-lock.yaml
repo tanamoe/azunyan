@@ -14,9 +14,6 @@ dependencies:
   '@discordjs/opus':
     specifier: ^0.9.0
     version: 0.9.0
-  '@distube/ytdl-core':
-    specifier: ^4.11.10
-    version: 4.11.10
   discord-api-types:
     specifier: ^0.37.43
     version: 0.37.43
@@ -32,6 +29,9 @@ dependencies:
   pino:
     specifier: ^8.14.1
     version: 8.14.1
+  yt-stream:
+    specifier: ^1.4.7
+    version: 1.4.7
 
 devDependencies:
   '@commitlint/cli':
@@ -406,16 +406,6 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
-    dev: false
-
-  /@distube/ytdl-core@4.11.10:
-    resolution: {integrity: sha512-WS7d2N5vA9ptPNaA1hOMkhSs72dJYJ7U4PxLwq0ZLnnJ1JMhdjS2b+xjTinMW9vNNcq4YTcF7pa/GR5hmbcaBw==}
-    engines: {node: '>=12'}
-    dependencies:
-      m3u8stream: 0.8.6
-      miniget: 4.2.2
-      sax: 1.2.4
-      undici: 5.22.1
     dev: false
 
   /@eslint-community/eslint-utils@4.4.0(eslint@8.42.0):
@@ -2089,14 +2079,6 @@ packages:
     dependencies:
       yallist: 4.0.0
 
-  /m3u8stream@0.8.6:
-    resolution: {integrity: sha512-LZj8kIVf9KCphiHmH7sbFQTVe4tOemb202fWwvJwR9W5ENW/1hxJN6ksAWGhQgSBSa3jyWhnjKU1Fw1GaOdbyA==}
-    engines: {node: '>=12'}
-    dependencies:
-      miniget: 4.2.2
-      sax: 1.2.4
-    dev: false
-
   /make-dir@3.1.0:
     resolution: {integrity: sha512-g3FeP20LNwhALb/6Cz6Dd4F2ngze0jz7tbzrD2wAV+o9FeNHe4rL+yK2md0J/fiSf1sa1ADhXqi5+oVwOM/eGw==}
     engines: {node: '>=8'}
@@ -2166,11 +2148,6 @@ packages:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
     dev: true
-
-  /miniget@4.2.2:
-    resolution: {integrity: sha512-a7voNL1N5lDMxvTMExOkg+Fq89jM2vY8pAi9ZEWzZtfNmdfP6RXkvUtFnCAXoCv2T9k1v/fUJVaAEuepGcvLYA==}
-    engines: {node: '>=12'}
-    dev: false
 
   /minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
@@ -2707,10 +2684,6 @@ packages:
   /safe-stable-stringify@2.4.3:
     resolution: {integrity: sha512-e2bDA2WJT0wxseVd4lsDP4+3ONX6HpMXQa1ZhFQ7SU+GjvORCmShbCMltrtIDfkYhVHrOcPtj+KhmDBdPdZD1g==}
     engines: {node: '>=10'}
-    dev: false
-
-  /sax@1.2.4:
-    resolution: {integrity: sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==}
     dev: false
 
   /semver@5.7.1:
@@ -3262,4 +3235,8 @@ packages:
 
   /youtube-sr@4.3.4:
     resolution: {integrity: sha512-olSYcR80XigutCrePEXBX3/RJJrWfonJQj7+/ggBiWU0CzTDLE1q8+lpWTWCG0JpzhzILp/IB/Bq/glGqqr1TQ==}
+    dev: false
+
+  /yt-stream@1.4.7:
+    resolution: {integrity: sha512-YzJk4HQrUUmhxsfLngprJY0f3SaQ2Es6mKdX6IoSUVoEXbl0NAYhyj7KnIOn5ajfBTRH0+0oepdsd0bqk5gdxg==}
     dev: false
