@@ -2,6 +2,7 @@ import type { AutocompletePlayerCommand } from "../../types/command.js";
 
 import { logger } from "../../lib/logger.js";
 
+import ytstream from "yt-stream";
 import {
   type ChatInputCommandInteraction,
   type GuildMember,
@@ -39,6 +40,18 @@ export const youtubeCommand: AutocompletePlayerCommand = {
 
     // assigning query
     const query = interaction.options.getString("query", true);
+
+    // check if URL can be played
+    try {
+      const { stream } = await ytstream.stream(query, {
+        quality: "low",
+        type: "audio",
+        highWaterMark: 1048576,
+      });
+      stream.on("data", () => stream.destroy());
+    } catch (e) {
+      return await interaction.editReply("Nyaa >-< Bài này không hát được!!");
+    }
 
     // assigning player & check
     const player = useMasterPlayer();
