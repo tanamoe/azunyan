@@ -15,7 +15,7 @@ import {
   ActionRowBuilder,
   ButtonStyle,
 } from "discord.js";
-import { useMasterPlayer } from "discord-player";
+import { useMainPlayer } from "discord-player";
 
 export const attachmentContextMenu: PlayerCommand = {
   data: new ContextMenuCommandBuilder()
@@ -43,10 +43,10 @@ export const attachmentContextMenu: PlayerCommand = {
       return await interaction.editReply("Azu-nyan không vào voice được >.<");
 
     // assigning player & check
-    const player = useMasterPlayer();
+    const player = useMainPlayer();
     if (!player)
       return await interaction.editReply(
-        "Nyaaa~ có gì đó xảy ra rồi vì không chơi được TTwTT"
+        "Nyaaa~ có gì đó xảy ra rồi vì không chơi được TTwTT",
       );
 
     try {
@@ -72,7 +72,7 @@ export const attachmentContextMenu: PlayerCommand = {
 
       const row =
         new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(
-          viewQueue
+          viewQueue,
         );
 
       return await interaction.editReply({
@@ -95,7 +95,7 @@ export const attachmentCommand: PlayerCommand = {
       option
         .setName("url")
         .setDescription("Link đến một file nhạc~")
-        .setRequired(true)
+        .setRequired(true),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     // default to defer the reply
@@ -114,10 +114,10 @@ export const attachmentCommand: PlayerCommand = {
       return await interaction.editReply("Định dạng chưa được hỗ trợ T^T");
 
     // assigning player & check
-    const player = useMasterPlayer();
+    const player = useMainPlayer();
     if (!player)
       return await interaction.editReply(
-        "Nyaaa~ có gì đó xảy ra rồi vì không chơi được TTwTT"
+        "Nyaaa~ có gì đó xảy ra rồi vì không chơi được TTwTT",
       );
 
     try {
@@ -143,7 +143,7 @@ export const attachmentCommand: PlayerCommand = {
 
       const row =
         new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(
-          viewQueue
+          viewQueue,
         );
 
       return await interaction.editReply({

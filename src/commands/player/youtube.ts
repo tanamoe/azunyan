@@ -2,7 +2,6 @@ import type { AutocompletePlayerCommand } from "../../types/command.js";
 
 import { logger } from "../../lib/logger.js";
 
-import ytstream from "yt-stream";
 import {
   type ChatInputCommandInteraction,
   type GuildMember,
@@ -13,7 +12,7 @@ import {
   ButtonStyle,
   ActionRowBuilder,
 } from "discord.js";
-import { QueryType, useMasterPlayer } from "discord-player";
+import { QueryType, useMainPlayer } from "discord-player";
 
 export const youtubeCommand: AutocompletePlayerCommand = {
   data: new SlashCommandBuilder()
@@ -24,7 +23,7 @@ export const youtubeCommand: AutocompletePlayerCommand = {
         .setName("query")
         .setDescription("Tên để tìm~")
         .setRequired(true)
-        .setAutocomplete(true)
+        .setAutocomplete(true),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     // default to defer the reply
@@ -41,23 +40,11 @@ export const youtubeCommand: AutocompletePlayerCommand = {
     // assigning query
     const query = interaction.options.getString("query", true);
 
-    // check if URL can be played
-    try {
-      const { stream } = await ytstream.stream(query, {
-        quality: "low",
-        type: "audio",
-        highWaterMark: 1048576,
-      });
-      stream.on("data", () => stream.destroy());
-    } catch (e) {
-      return await interaction.editReply("Nyaa >-< Bài này không hát được!!");
-    }
-
     // assigning player & check
-    const player = useMasterPlayer();
+    const player = useMainPlayer();
     if (!player)
       return await interaction.editReply(
-        "Nyaaa~ có gì đó xảy ra rồi vì không chơi được TTwTT"
+        "Nyaaa~ có gì đó xảy ra rồi vì không chơi được TTwTT",
       );
 
     try {
@@ -86,7 +73,7 @@ export const youtubeCommand: AutocompletePlayerCommand = {
 
       const row =
         new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(
-          viewQueue
+          viewQueue,
         );
 
       return await interaction.editReply({
@@ -101,7 +88,7 @@ export const youtubeCommand: AutocompletePlayerCommand = {
   },
   async autocomplete(interaction) {
     // assigning player & check
-    const player = useMasterPlayer();
+    const player = useMainPlayer();
     if (!player) return;
 
     // assigning query
@@ -122,7 +109,7 @@ export const youtubeCommand: AutocompletePlayerCommand = {
       results.push({
         name: `${result.author} - ${result.title}`,
         value: result.url,
-      })
+      }),
     );
 
     return await interaction.respond(results);
