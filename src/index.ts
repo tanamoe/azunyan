@@ -23,6 +23,7 @@ import {
   attachmentContextMenu,
 } from "./commands/player/attachment.js";
 import { queueCommand } from "./commands/player/queue.js";
+import { youtubePlaylistCommand } from "./commands/player/youtube_playlist.js";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ const client = new Client({
 // Registering commands
 const commands: PlayerCommand[] = [
   youtubeCommand,
+  youtubePlaylistCommand,
   attachmentContextMenu,
   attachmentCommand,
   skipCommand,
@@ -52,7 +54,7 @@ await register(commands);
 client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isAutocomplete()) {
     const command = commands.find(
-      (command) => command.data.name === interaction.commandName
+      (command) => command.data.name === interaction.commandName,
     ) as AutocompletePlayerCommand | undefined;
 
     if (!command) {
@@ -72,7 +74,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     interaction.isMessageContextMenuCommand()
   ) {
     const command = commands.find(
-      (command) => command.data.name === interaction.commandName
+      (command) => command.data.name === interaction.commandName,
     );
 
     if (!command) {
@@ -89,7 +91,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   if (interaction.isButton()) {
     const action = commands.find(
-      (action) => action.data.name === interaction.customId
+      (action) => action.data.name === interaction.customId,
     );
 
     if (!action) {
