@@ -14,16 +14,15 @@ import {
 } from "discord.js";
 import { QueryType, useMainPlayer } from "discord-player";
 
-export const youtubePlaylistCommand: PlayerCommand = {
+export const spotifyAlbumCommand: PlayerCommand = {
   data: new SlashCommandBuilder()
-    .setName("ytpl")
-    .setDescription("Azu-nyan sẽ tìm và thêm bài từ một YouTube playlist~")
+    .setName("spotify-album")
+    .setDescription("Azu-nyan sẽ thêm một album từ Spotify~")
     .addStringOption((option) =>
       option
-        .setName("query")
-        .setDescription("Tên để tìm~")
-        .setRequired(true)
-        .setAutocomplete(true),
+        .setName("url")
+        .setDescription("Đường dẫn để thêm~")
+        .setRequired(true),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     // default to defer the reply
@@ -38,7 +37,7 @@ export const youtubePlaylistCommand: PlayerCommand = {
       return await interaction.editReply("Azu-nyan không vào voice được >.<");
 
     // assigning query
-    const query = interaction.options.getString("query", true);
+    const url = interaction.options.getString("url", true);
 
     // assigning player & check
     const player = useMainPlayer();
@@ -47,29 +46,18 @@ export const youtubePlaylistCommand: PlayerCommand = {
         "Nyaaa~ có gì đó xảy ra rồi vì không chơi được TTwTT",
       );
 
-    const search = await player.search(query);
-
-    if (!search.hasPlaylist()) {
-      return await interaction.editReply("Đây không phải là một playlist?...");
-    }
-
-    const playlist = search.playlist!;
-
     try {
-      await player.play(channel, playlist, {
-        searchEngine: QueryType.YOUTUBE_VIDEO,
+      const { track } = await player.play(channel, url, {
+        searchEngine: QueryType.SPOTIFY_ALBUM,
       });
 
       embed.setAuthor({
         name: "Thêm vào danh sách phát",
       });
-      embed.setColor("#FF0000");
-      embed.setTitle(playlist.title);
-      embed.setDescription(
-        `Thêm ${playlist.tracks.length} bài vào danh sách phát`,
-      );
-      embed.setURL(playlist.url);
-      embed.setThumbnail(playlist.thumbnail);
+      embed.setColor("#1db954");
+      embed.setTitle(track.title);
+      embed.setURL(track.url);
+      embed.setThumbnail(track.thumbnail);
       embed.setFooter({
         text: interaction.member!.user.username,
         iconURL: `https://cdn.discordapp.com/avatars/${

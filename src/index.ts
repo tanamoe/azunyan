@@ -17,7 +17,11 @@ import {
 } from "@discord-player/extractor";
 
 import { youtubeCommand } from "./commands/player/youtube.js";
+import { youtubePlaylistCommand } from "./commands/player/youtubePlaylist.js";
 import { appleMusicCommand } from "./commands/player/applemusic.js";
+import { appleMusicAlbumCommand } from "./commands/player/applemusicAlbum.js";
+import { spotifyCommand } from "./commands/player/spotify.js";
+import { spotifyAlbumCommand } from "./commands/player/spotifyAlbum.js";
 import { skipCommand } from "./commands/player/skip.js";
 import { stopCommand } from "./commands/player/stop.js";
 import { pingCommand } from "./commands/misc/ping.js";
@@ -26,8 +30,6 @@ import {
   attachmentContextMenu,
 } from "./commands/player/attachment.js";
 import { queueCommand } from "./commands/player/queue.js";
-import { youtubePlaylistCommand } from "./commands/player/youtube_playlist.js";
-import { spotifyCommand } from "./commands/player/spotify.js";
 
 dotenv.config();
 
@@ -45,7 +47,9 @@ const commands: PlayerCommand[] = [
   youtubeCommand,
   youtubePlaylistCommand,
   appleMusicCommand,
+  appleMusicAlbumCommand,
   spotifyCommand,
+  spotifyAlbumCommand,
   attachmentContextMenu,
   attachmentCommand,
   skipCommand,

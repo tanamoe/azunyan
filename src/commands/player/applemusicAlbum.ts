@@ -14,10 +14,10 @@ import {
 } from "discord.js";
 import { QueryType, useMainPlayer } from "discord-player";
 
-export const spotifyCommand: PlayerCommand = {
+export const appleMusicAlbumCommand: PlayerCommand = {
   data: new SlashCommandBuilder()
-    .setName("spotify")
-    .setDescription("Azu-nyan sẽ thêm một bài từ Spotify~")
+    .setName("am-album")
+    .setDescription("Azu-nyan sẽ thêm một album từ Apple Music~")
     .addStringOption((option) =>
       option
         .setName("url")
@@ -48,13 +48,13 @@ export const spotifyCommand: PlayerCommand = {
 
     try {
       const { track } = await player.play(channel, url, {
-        searchEngine: QueryType.SPOTIFY_SONG,
+        searchEngine: QueryType.APPLE_MUSIC_SONG,
       });
 
       embed.setAuthor({
         name: "Thêm vào danh sách phát",
       });
-      embed.setColor("#1db954");
+      embed.setColor("#fa586a");
       embed.setTitle(track.title);
       embed.setURL(track.url);
       embed.setThumbnail(track.thumbnail);
