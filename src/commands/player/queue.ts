@@ -24,7 +24,7 @@ export const queueCommand: PlayerCommand = {
 
     if (!currentTrack)
       return await interaction.editReply(
-        "Hiện không có bài nào trong danh sách phát~~"
+        "Hiện không có bài nào trong danh sách phát~~",
       );
 
     const embed = new EmbedBuilder();
@@ -40,13 +40,17 @@ export const queueCommand: PlayerCommand = {
         {
           name: "Sắp tới",
           value: tracks
-            .map((track, i) => `${i + 1}. [${track.title}](${track.url})`)
+            .slice(0, 10)
+            .map(
+              (track, i) =>
+                `${i + 1}. [${track.title.slice(0, 300)}](${track.url})`,
+            )
             .join("\n"),
         },
         {
           name: "Số lượng",
           value: `${tracks.length} bài`,
-        }
+        },
       );
     }
 

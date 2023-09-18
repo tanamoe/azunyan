@@ -10,11 +10,14 @@ import * as dotenv from "dotenv";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
 import { Player } from "discord-player";
 import {
+  AppleMusicExtractor,
   AttachmentExtractor,
+  SpotifyExtractor,
   YouTubeExtractor,
 } from "@discord-player/extractor";
 
 import { youtubeCommand } from "./commands/player/youtube.js";
+import { appleMusicCommand } from "./commands/player/applemusic.js";
 import { skipCommand } from "./commands/player/skip.js";
 import { stopCommand } from "./commands/player/stop.js";
 import { pingCommand } from "./commands/misc/ping.js";
@@ -24,6 +27,7 @@ import {
 } from "./commands/player/attachment.js";
 import { queueCommand } from "./commands/player/queue.js";
 import { youtubePlaylistCommand } from "./commands/player/youtube_playlist.js";
+import { spotifyCommand } from "./commands/player/spotify.js";
 
 dotenv.config();
 
@@ -40,6 +44,8 @@ const client = new Client({
 const commands: PlayerCommand[] = [
   youtubeCommand,
   youtubePlaylistCommand,
+  appleMusicCommand,
+  spotifyCommand,
   attachmentContextMenu,
   attachmentCommand,
   skipCommand,
@@ -111,6 +117,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
 const player = new Player(client);
 
 player.extractors.register(YouTubeExtractor, {});
+player.extractors.register(AppleMusicExtractor, {});
+player.extractors.register(SpotifyExtractor, {});
 player.extractors.register(AttachmentExtractor, {});
 
 logger.info("Ready.");
