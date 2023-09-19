@@ -37,8 +37,6 @@ export const skipCommand: PlayerCommand = {
           return await interaction.editReply("Vị trí không hợp lệ TTwTT");
         }
 
-        console.log(from, to);
-
         for (let i = to; i >= from; i--) {
           queue.removeTrack(i);
         }
