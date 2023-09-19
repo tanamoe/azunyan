@@ -48,7 +48,7 @@ export const appleMusicAlbumCommand: PlayerCommand = {
 
     try {
       const { track } = await player.play(channel, url, {
-        searchEngine: QueryType.APPLE_MUSIC_SONG,
+        searchEngine: QueryType.APPLE_MUSIC_ALBUM,
       });
 
       embed.setAuthor({
