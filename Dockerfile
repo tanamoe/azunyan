@@ -1,24 +1,19 @@
-FROM node:20.6.1
-
-WORKDIR /app
+FROM node:20.9
 
 # deps: install ffmpeg
 RUN apt update -y && apt install -y ffmpeg
 
-# install pnpm
-RUN npm i -g pnpm
+# copy dirs
+COPY . /app
+WORKDIR /app
 
-# copy package.json and its lockfile
-COPY ["package.json", "pnpm-lock.yaml", "./"]
+RUN npm install -g pnpm
 
 # install the dependencies
 RUN pnpm install --frozen-lockfile
 
-# copy source file
-COPY . .
-
-# build the source file
-RUN ["pnpm", "build"]
+# build the bot
+RUN pnpm run build
 
 # run the bot
 CMD ["pnpm", "start"]

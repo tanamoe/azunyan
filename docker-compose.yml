@@ -3,4 +3,5 @@ version: "3.9"
 services:
   azunyan:
     build: .
+    restart: always
     container_name: azunyan-main
