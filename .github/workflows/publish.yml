@@ -4,7 +4,7 @@ name: Publish
 
 on:
   push:
-    branches: ["main"]
+    branches: ["release"]
 
 env:
   REGISTRY: ghcr.io
