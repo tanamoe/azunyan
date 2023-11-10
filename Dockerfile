@@ -1,13 +1,18 @@
-FROM node:20.9
+FROM node:20.9-alpine
 
-# deps: install ffmpeg
-RUN apt update -y && apt install -y ffmpeg
+# deps: install runtime dependencies
+RUN apk update
+RUN apk upgrade
+RUN apk add --no-cache ffmpeg python3 alpine-sdk
+
+# enable node's corepack, install pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
 # copy dirs
 COPY . /app
 WORKDIR /app
-
-RUN npm install -g pnpm
 
 # install the dependencies
 RUN pnpm install --frozen-lockfile
