@@ -1,4 +1,4 @@
-import type { PlayerCommand } from "../../types/command.js";
+import type { AppCommand } from "../../types/command.js";
 
 import {
   type CommandInteraction,
@@ -7,7 +7,7 @@ import {
 } from "discord.js";
 import { useQueue } from "discord-player";
 
-export const queueCommand: PlayerCommand = {
+export const queueCommand: AppCommand = {
   data: new SlashCommandBuilder()
     .setName("queue")
     .setDescription("Azu-nyan sẽ cho bạn xem danh sách phát hiện tại OwO~"),

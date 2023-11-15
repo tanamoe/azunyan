@@ -7,16 +7,16 @@ import type {
   InteractionResponse,
 } from "discord.js";
 
-export interface PlayerCommand {
+export interface AppCommand {
   data:
     | SlashCommandBuilder
     | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
     | ContextMenuCommandBuilder;
   execute(
-    interaction: BaseInteraction
+    interaction: BaseInteraction,
   ): Promise<void | Message | InteractionResponse>;
 }
 
-export interface AutocompletePlayerCommand extends PlayerCommand {
+export interface AutocompleteAppCommand extends AppCommand {
   autocomplete(interaction: AutocompleteInteraction): Promise<void>;
 }

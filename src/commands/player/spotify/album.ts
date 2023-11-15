@@ -1,6 +1,6 @@
-import type { AutocompletePlayerCommand } from "../../types/command.js";
+import type { AppCommand } from "../../../types/command.js";
 
-import { logger } from "../../lib/logger.js";
+import { logger } from "../../../lib/logger.js";
 
 import {
   type ChatInputCommandInteraction,
@@ -13,17 +13,17 @@ import {
   ActionRowBuilder,
 } from "discord.js";
 import { QueryType, useMainPlayer } from "discord-player";
+import { joinURL } from "ufo";
 
-export const youtubeCommand: AutocompletePlayerCommand = {
+export const spotifyAlbumCommand: AppCommand = {
   data: new SlashCommandBuilder()
-    .setName("yt")
-    .setDescription("Azu-nyan sẽ tìm và thêm một bài từ YouTube~")
+    .setName("spotify-album")
+    .setDescription("Azu-nyan sẽ thêm một album từ Spotify~")
     .addStringOption((option) =>
       option
-        .setName("query")
-        .setDescription("Tên để tìm~")
-        .setRequired(true)
-        .setAutocomplete(true),
+        .setName("url")
+        .setDescription("Đường dẫn để thêm~")
+        .setRequired(true),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     // default to defer the reply
@@ -38,7 +38,7 @@ export const youtubeCommand: AutocompletePlayerCommand = {
       return await interaction.editReply("Azu-nyan không vào voice được >.<");
 
     // assigning query
-    const query = interaction.options.getString("query", true);
+    const url = interaction.options.getString("url", true);
 
     // assigning player & check
     const player = useMainPlayer();
@@ -48,22 +48,24 @@ export const youtubeCommand: AutocompletePlayerCommand = {
       );
 
     try {
-      const { track } = await player.play(channel, query, {
-        searchEngine: QueryType.YOUTUBE_VIDEO,
+      const { track } = await player.play(channel, url, {
+        searchEngine: QueryType.SPOTIFY_ALBUM,
       });
 
       embed.setAuthor({
         name: "Thêm vào danh sách phát",
       });
-      embed.setColor("#FF0000");
+      embed.setColor("#1db954");
       embed.setTitle(track.title);
       embed.setURL(track.url);
       embed.setThumbnail(track.thumbnail);
       embed.setFooter({
         text: interaction.member!.user.username,
-        iconURL: `https://cdn.discordapp.com/avatars/${
-          interaction.member!.user.id
-        }/${interaction.member!.user.avatar!}.png`,
+        iconURL: joinURL(
+          "https://cdn.discordapp.com/avatars",
+          interaction.member!.user.id,
+          `${interaction.member!.user.avatar!}.png`,
+        ),
       });
 
       const viewQueue = new ButtonBuilder()
@@ -85,33 +87,5 @@ export const youtubeCommand: AutocompletePlayerCommand = {
 
       return await interaction.editReply("Có chuyện gì vừa xảy ra TwT...");
     }
-  },
-  async autocomplete(interaction) {
-    // assigning player & check
-    const player = useMainPlayer();
-    if (!player) return;
-
-    // assigning query
-    const query = interaction.options.getString("query", true);
-
-    // getting results
-    const search = await player.search(query, {
-      requestedBy: interaction.user,
-      searchEngine: QueryType.YOUTUBE,
-    });
-
-    const results: {
-      name: string;
-      value: string;
-    }[] = [];
-
-    search.tracks.slice(0, 10).map((result) =>
-      results.push({
-        name: `${result.author} - ${result.title}`,
-        value: result.url,
-      }),
-    );
-
-    return await interaction.respond(results);
   },
 };

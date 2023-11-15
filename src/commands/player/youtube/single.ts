@@ -1,6 +1,6 @@
-import type { PlayerCommand } from "../../types/command.js";
+import type { AutocompleteAppCommand } from "../../../types/command.js";
 
-import { logger } from "../../lib/logger.js";
+import { logger } from "../../../lib/logger.js";
 
 import {
   type ChatInputCommandInteraction,
@@ -13,16 +13,18 @@ import {
   ActionRowBuilder,
 } from "discord.js";
 import { QueryType, useMainPlayer } from "discord-player";
+import { joinURL } from "ufo";
 
-export const youtubePlaylistCommand: PlayerCommand = {
+export const youtubeCommand: AutocompleteAppCommand = {
   data: new SlashCommandBuilder()
-    .setName("yt-playlist")
-    .setDescription("Azu-nyan sẽ thêm các bài hát từ một YouTube playlist~")
+    .setName("yt")
+    .setDescription("Azu-nyan sẽ tìm và thêm một bài từ YouTube~")
     .addStringOption((option) =>
       option
-        .setName("url")
-        .setDescription("Đường dẫn để thêm~")
-        .setRequired(true),
+        .setName("query")
+        .setDescription("Tên để tìm~")
+        .setRequired(true)
+        .setAutocomplete(true),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     // default to defer the reply
@@ -37,7 +39,7 @@ export const youtubePlaylistCommand: PlayerCommand = {
       return await interaction.editReply("Azu-nyan không vào voice được >.<");
 
     // assigning query
-    const url = interaction.options.getString("url", true);
+    const query = interaction.options.getString("query", true);
 
     // assigning player & check
     const player = useMainPlayer();
@@ -46,16 +48,8 @@ export const youtubePlaylistCommand: PlayerCommand = {
         "Nyaaa~ có gì đó xảy ra rồi vì không chơi được TTwTT",
       );
 
-    const search = await player.search(url);
-
-    if (!search.hasPlaylist()) {
-      return await interaction.editReply("Đây không phải là một playlist?...");
-    }
-
-    const playlist = search.playlist!;
-
     try {
-      await player.play(channel, playlist, {
+      const { track } = await player.play(channel, query, {
         searchEngine: QueryType.YOUTUBE_VIDEO,
       });
 
@@ -63,17 +57,16 @@ export const youtubePlaylistCommand: PlayerCommand = {
         name: "Thêm vào danh sách phát",
       });
       embed.setColor("#FF0000");
-      embed.setTitle(playlist.title);
-      embed.setDescription(
-        `Thêm ${playlist.tracks.length} bài vào danh sách phát`,
-      );
-      embed.setURL(playlist.url);
-      embed.setThumbnail(playlist.thumbnail);
+      embed.setTitle(track.title);
+      embed.setURL(track.url);
+      embed.setThumbnail(track.thumbnail);
       embed.setFooter({
         text: interaction.member!.user.username,
-        iconURL: `https://cdn.discordapp.com/avatars/${
-          interaction.member!.user.id
-        }/${interaction.member!.user.avatar!}.png`,
+        iconURL: joinURL(
+          "https://cdn.discordapp.com/avatars/",
+          interaction.member!.user.id,
+          `${interaction.member!.user.avatar!}.png`,
+        ),
       });
 
       const viewQueue = new ButtonBuilder()
@@ -95,5 +88,33 @@ export const youtubePlaylistCommand: PlayerCommand = {
 
       return await interaction.editReply("Có chuyện gì vừa xảy ra TwT...");
     }
+  },
+  async autocomplete(interaction) {
+    // assigning player & check
+    const player = useMainPlayer();
+    if (!player) return;
+
+    // assigning query
+    const query = interaction.options.getString("query", true);
+
+    // getting results
+    const search = await player.search(query, {
+      requestedBy: interaction.user,
+      searchEngine: QueryType.YOUTUBE,
+    });
+
+    const results: {
+      name: string;
+      value: string;
+    }[] = [];
+
+    search.tracks.slice(0, 10).map((result) =>
+      results.push({
+        name: `${result.author} - ${result.title}`,
+        value: result.url,
+      }),
+    );
+
+    return await interaction.respond(results);
   },
 };

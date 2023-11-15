@@ -1,8 +1,8 @@
-import type { PlayerCommand } from "../../types/command.js";
+import type { AppCommand } from "../../types/command.js";
 
 import { type CommandInteraction, SlashCommandBuilder } from "discord.js";
 
-export const pingCommand: PlayerCommand = {
+export const pingCommand: AppCommand = {
   data: new SlashCommandBuilder()
     .setName("ping")
     .setDescription("Azu-nyan sẽ làm gì đó?!"),

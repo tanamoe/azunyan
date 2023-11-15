@@ -1,4 +1,4 @@
-import type { PlayerCommand } from "../../types/command.js";
+import type { AppCommand } from "../../types/command.js";
 
 import { logger } from "../../lib/logger.js";
 
@@ -16,8 +16,9 @@ import {
   ButtonStyle,
 } from "discord.js";
 import { useMainPlayer } from "discord-player";
+import { joinURL } from "ufo";
 
-export const attachmentContextMenu: PlayerCommand = {
+export const attachmentContextMenu: AppCommand = {
   data: new ContextMenuCommandBuilder()
     .setName("Thêm vào danh sách phát")
     .setType(ApplicationCommandType.Message),
@@ -60,9 +61,11 @@ export const attachmentContextMenu: PlayerCommand = {
       embed.setURL(track.url);
       embed.setFooter({
         text: interaction.member!.user.username,
-        iconURL: `https://cdn.discordapp.com/avatars/${
-          interaction.member!.user.id
-        }/${interaction.member!.user.avatar!}.png`,
+        iconURL: joinURL(
+          "https://cdn.discordapp.com/avatars/",
+          interaction.member!.user.id,
+          `${interaction.member!.user.avatar!}.png`,
+        ),
       });
 
       const viewQueue = new ButtonBuilder()
@@ -87,7 +90,7 @@ export const attachmentContextMenu: PlayerCommand = {
   },
 };
 
-export const attachmentCommand: PlayerCommand = {
+export const attachmentCommand: AppCommand = {
   data: new SlashCommandBuilder()
     .setName("direct")
     .setDescription("Azu-nyan sẽ thêm một bài từ URL~")
