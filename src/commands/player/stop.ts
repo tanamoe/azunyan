@@ -1,9 +1,9 @@
-import type { PlayerCommand } from "../../types/command.js";
+import type { AppCommand } from "../../types/command.js";
 
 import { type CommandInteraction, SlashCommandBuilder } from "discord.js";
 import { useQueue } from "discord-player";
 
-export const stopCommand: PlayerCommand = {
+export const stopCommand: AppCommand = {
   data: new SlashCommandBuilder()
     .setName("stop")
     .setDescription("Azu-nyan sẽ dừng nhạc và đi ngủ~"),

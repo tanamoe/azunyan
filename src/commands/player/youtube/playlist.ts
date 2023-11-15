@@ -1,6 +1,6 @@
-import type { PlayerCommand } from "../../types/command.js";
+import type { AppCommand } from "../../../types/command.js";
 
-import { logger } from "../../lib/logger.js";
+import { logger } from "../../../lib/logger.js";
 
 import {
   type ChatInputCommandInteraction,
@@ -13,11 +13,12 @@ import {
   ActionRowBuilder,
 } from "discord.js";
 import { QueryType, useMainPlayer } from "discord-player";
+import { joinURL } from "ufo";
 
-export const spotifyCommand: PlayerCommand = {
+export const youtubePlaylistCommand: AppCommand = {
   data: new SlashCommandBuilder()
-    .setName("spotify")
-    .setDescription("Azu-nyan sẽ thêm một bài từ Spotify~")
+    .setName("yt-playlist")
+    .setDescription("Azu-nyan sẽ thêm các bài hát từ một YouTube playlist~")
     .addStringOption((option) =>
       option
         .setName("url")
@@ -46,23 +47,36 @@ export const spotifyCommand: PlayerCommand = {
         "Nyaaa~ có gì đó xảy ra rồi vì không chơi được TTwTT",
       );
 
+    const search = await player.search(url);
+
+    if (!search.hasPlaylist()) {
+      return await interaction.editReply("Đây không phải là một playlist?...");
+    }
+
+    const playlist = search.playlist!;
+
     try {
-      const { track } = await player.play(channel, url, {
-        searchEngine: QueryType.SPOTIFY_SONG,
+      await player.play(channel, playlist, {
+        searchEngine: QueryType.YOUTUBE_VIDEO,
       });
 
       embed.setAuthor({
         name: "Thêm vào danh sách phát",
       });
-      embed.setColor("#1db954");
-      embed.setTitle(track.title);
-      embed.setURL(track.url);
-      embed.setThumbnail(track.thumbnail);
+      embed.setColor("#FF0000");
+      embed.setTitle(playlist.title);
+      embed.setDescription(
+        `Thêm ${playlist.tracks.length} bài vào danh sách phát`,
+      );
+      embed.setURL(playlist.url);
+      embed.setThumbnail(playlist.thumbnail);
       embed.setFooter({
         text: interaction.member!.user.username,
-        iconURL: `https://cdn.discordapp.com/avatars/${
-          interaction.member!.user.id
-        }/${interaction.member!.user.avatar!}.png`,
+        iconURL: joinURL(
+          "https://cdn.discordapp.com/avatars/",
+          interaction.member!.user.id,
+          `${interaction.member!.user.avatar!}.png`,
+        ),
       });
 
       const viewQueue = new ButtonBuilder()

@@ -1,6 +1,6 @@
-import type { PlayerCommand } from "../../types/command.js";
+import type { AppCommand } from "../../../types/command.js";
 
-import { logger } from "../../lib/logger.js";
+import { logger } from "../../../lib/logger.js";
 
 import {
   type ChatInputCommandInteraction,
@@ -13,11 +13,12 @@ import {
   ActionRowBuilder,
 } from "discord.js";
 import { QueryType, useMainPlayer } from "discord-player";
+import { joinURL } from "ufo";
 
-export const spotifyAlbumCommand: PlayerCommand = {
+export const spotifyCommand: AppCommand = {
   data: new SlashCommandBuilder()
-    .setName("spotify-album")
-    .setDescription("Azu-nyan sẽ thêm một album từ Spotify~")
+    .setName("spotify")
+    .setDescription("Azu-nyan sẽ thêm một bài từ Spotify~")
     .addStringOption((option) =>
       option
         .setName("url")
@@ -48,7 +49,7 @@ export const spotifyAlbumCommand: PlayerCommand = {
 
     try {
       const { track } = await player.play(channel, url, {
-        searchEngine: QueryType.SPOTIFY_ALBUM,
+        searchEngine: QueryType.SPOTIFY_SONG,
       });
 
       embed.setAuthor({
@@ -60,9 +61,11 @@ export const spotifyAlbumCommand: PlayerCommand = {
       embed.setThumbnail(track.thumbnail);
       embed.setFooter({
         text: interaction.member!.user.username,
-        iconURL: `https://cdn.discordapp.com/avatars/${
-          interaction.member!.user.id
-        }/${interaction.member!.user.avatar!}.png`,
+        iconURL: joinURL(
+          "https://cdn.discordapp.com/avatars/",
+          interaction.member!.user.id,
+          `${interaction.member!.user.avatar!}.png`,
+        ),
       });
 
       const viewQueue = new ButtonBuilder()
