@@ -19,6 +19,12 @@ export const twitterCommand: AppCommand = {
         .setName("url")
         .setDescription("Cho xin nhẹ cái link Twitter (X)~")
         .setRequired(true),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("media")
+        .setDescription("Gửi hình ảnh? (mặc định: có)")
+        .setRequired(false),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     // default to defer the reply
@@ -29,6 +35,7 @@ export const twitterCommand: AppCommand = {
 
     // assigning query
     const url = interaction.options.getString("url", true);
+    const sendMedia = interaction.options.getBoolean("media", false) ?? true;
 
     try {
       const res = await fetch(joinURL("https://api.vxtwitter.com/", url));
@@ -54,7 +61,7 @@ export const twitterCommand: AppCommand = {
         embeds: [embed],
       });
 
-      if (data.mediaURLs.length > 0) {
+      if (data.mediaURLs.length > 0 && sendMedia) {
         await interaction.followUp(data.mediaURLs.join("\n"));
       }
 
