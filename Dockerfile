@@ -2,7 +2,6 @@ FROM node:20.9-alpine
 
 # deps: install runtime dependencies
 RUN apk update
-RUN apk upgrade
 RUN apk add --no-cache ffmpeg python3 alpine-sdk
 
 # enable node's corepack, install pnpm
@@ -16,9 +15,6 @@ WORKDIR /app
 
 # install the dependencies
 RUN pnpm install --frozen-lockfile
-
-# build the bot
-RUN pnpm run build
 
 # run the bot
 CMD ["pnpm", "start"]
