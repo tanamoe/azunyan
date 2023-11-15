@@ -35,19 +35,20 @@ export const twitterCommand: AppCommand = {
       const data: VxTwitterResponse = await res.json();
 
       embed.setAuthor({
-        name: data.user_name,
+        name: `${data.user_name} (@${data.user_screen_name})`,
         iconURL: data.user_profile_image_url,
+        url: joinURL("https://twitter.com/", data.user_screen_name),
       });
       embed.setColor("#000000");
-      embed.setTitle(data.text.substring(0, 30));
+      embed.setTitle("Twitter (X)");
+      embed.setDescription(data.text);
       embed.setURL(data.tweetURL);
 
       embed.setFooter({
-        text: "Twitter (X)",
-        iconURL: data.user_profile_image_url,
+        text: `${data.replies} 💬 • ${data.retweets} 🔁 • ${data.likes} ❤️`,
       });
 
-      embed.setTimestamp(data.date_epoch);
+      embed.setTimestamp(new Date(data.date_epoch * 1000));
 
       await interaction.editReply({
         embeds: [embed],
