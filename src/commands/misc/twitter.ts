@@ -54,7 +54,11 @@ export const twitterCommand: AppCommand = {
         embeds: [embed],
       });
 
-      return await interaction.followUp(data.mediaURLs.join("\n"));
+      if (data.mediaURLs.length > 0) {
+        await interaction.followUp(data.mediaURLs.join("\n"));
+      }
+
+      return;
     } catch (e) {
       logger.error(e);
 
