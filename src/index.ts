@@ -1,12 +1,8 @@
-import type {
-  AutocompletePlayerCommand,
-  PlayerCommand,
-} from "./types/command.js";
+import type { AutocompleteAppCommand, AppCommand } from "./types/command.js";
 
 import { logger } from "./lib/logger.js";
 import { register } from "./lib/register.js";
 
-import * as dotenv from "dotenv";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
 import { Player } from "discord-player";
 import {
@@ -16,22 +12,19 @@ import {
   YouTubeExtractor,
 } from "@discord-player/extractor";
 
-import { youtubeCommand } from "./commands/player/youtube.js";
-import { youtubePlaylistCommand } from "./commands/player/youtubePlaylist.js";
-import { appleMusicCommand } from "./commands/player/applemusic.js";
-import { appleMusicAlbumCommand } from "./commands/player/applemusicAlbum.js";
-import { spotifyCommand } from "./commands/player/spotify.js";
-import { spotifyAlbumCommand } from "./commands/player/spotifyAlbum.js";
+import { pingCommand } from "./commands/misc/ping.js";
+import { twitterCommand } from "./commands/misc/twitter.js";
+import { youtubeCommand } from "./commands/player/youtube/single.js";
+import { youtubePlaylistCommand } from "./commands/player/youtube/playlist.js";
+import { spotifyCommand } from "./commands/player/spotify/single.js";
+import { spotifyAlbumCommand } from "./commands/player/spotify/album.js";
 import { skipCommand } from "./commands/player/skip.js";
 import { stopCommand } from "./commands/player/stop.js";
-import { pingCommand } from "./commands/misc/ping.js";
 import {
   attachmentCommand,
   attachmentContextMenu,
 } from "./commands/player/attachment.js";
 import { queueCommand } from "./commands/player/queue.js";
-
-dotenv.config();
 
 if (!process.env.DISCORD_TOKEN)
   throw new Error("Discord token is not defined.");
@@ -43,18 +36,17 @@ const client = new Client({
 });
 
 // Registering commands
-const commands: PlayerCommand[] = [
+const commands: AppCommand[] = [
+  pingCommand,
+  twitterCommand,
   youtubeCommand,
   youtubePlaylistCommand,
-  appleMusicCommand,
-  appleMusicAlbumCommand,
   spotifyCommand,
   spotifyAlbumCommand,
   attachmentContextMenu,
   attachmentCommand,
   skipCommand,
   stopCommand,
-  pingCommand,
   queueCommand,
 ];
 
@@ -65,7 +57,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isAutocomplete()) {
     const command = commands.find(
       (command) => command.data.name === interaction.commandName,
-    ) as AutocompletePlayerCommand | undefined;
+    ) as AutocompleteAppCommand | undefined;
 
     if (!command) {
       logger.error(`Không tìm thấy lệnh ${interaction.commandName}`);
