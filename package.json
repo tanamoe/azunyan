@@ -22,6 +22,7 @@
     "@discord-player/extractor": "^4.4.5",
     "@discordjs/builders": "^1.6.5",
     "@discordjs/opus": "0.9.0",
+    "@iamtraction/google-translate": "github:iamtraction/google-translate",
     "consola": "^3.2.3",
     "discord-api-types": "^0.37.62",
     "discord-player": "^6.6.6",

@@ -14,6 +14,9 @@ dependencies:
   '@discordjs/opus':
     specifier: 0.9.0
     version: 0.9.0
+  '@iamtraction/google-translate':
+    specifier: github:iamtraction/google-translate
+    version: github.com/iamtraction/google-translate/3b0bbd13d105786cf28deac945f36b0cf7dd1369
   consola:
     specifier: ^3.2.3
     version: 3.2.3
@@ -3054,4 +3057,13 @@ packages:
 
   /youtube-sr@4.3.9:
     resolution: {integrity: sha512-wPGEgVevSn32BJu5jiSHdvoryUCTCIM9LYT+yMDDpUfaev2Dh46dB+4qU31NgJ9XOsNxGlEKmc9qxUO5L0CE/Q==}
+    dev: false
+
+  github.com/iamtraction/google-translate/3b0bbd13d105786cf28deac945f36b0cf7dd1369:
+    resolution: {tarball: https://codeload.github.com/iamtraction/google-translate/tar.gz/3b0bbd13d105786cf28deac945f36b0cf7dd1369}
+    name: '@iamtraction/google-translate'
+    version: 2.0.1
+    engines: {node: '>=16.0.0'}
+    dependencies:
+      undici: 5.27.2
     dev: false
