@@ -25,6 +25,7 @@ import {
   attachmentContextMenu,
 } from "./commands/player/attachment.js";
 import { queueCommand } from "./commands/player/queue.js";
+import { pixivCommand } from "./commands/misc/pixiv.js";
 
 if (!process.env.DISCORD_TOKEN)
   throw new Error("Discord token is not defined.");
@@ -39,6 +40,7 @@ const client = new Client({
 const commands: AppCommand[] = [
   pingCommand,
   twitterCommand,
+  pixivCommand,
   youtubeCommand,
   youtubePlaylistCommand,
   spotifyCommand,
