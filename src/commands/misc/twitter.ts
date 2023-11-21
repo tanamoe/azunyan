@@ -11,9 +11,10 @@ import {
   EmbedBuilder,
   AttachmentBuilder,
   ActionRowBuilder,
-  MessageActionRowComponentBuilder,
   ButtonBuilder,
   ButtonStyle,
+  CollectorFilter,
+  ButtonInteraction,
 } from "discord.js";
 
 export const twitterCommand: AppCommand = {
@@ -38,10 +39,14 @@ export const twitterCommand: AppCommand = {
         .setDescription("Gửi hình ảnh? (mặc định: có)")
         .setRequired(false),
     )
-    .addBooleanOption((option) =>
+    .addStringOption((option) =>
       option
         .setName("translate")
         .setDescription("Dịch Tweet? (mặc định: không)")
+        .setChoices(
+          { name: "English", value: "en" },
+          { name: "Tiếng Việt", value: "vi" },
+        )
         .setRequired(false),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
@@ -52,20 +57,19 @@ export const twitterCommand: AppCommand = {
     const embeds = [];
     const attachments = [];
     const videoURLs = [];
-    const row =
-      new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId("remove")
-          .setLabel("Xóa")
-          .setStyle(ButtonStyle.Danger),
-      );
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId("remove")
+        .setLabel("Xóa")
+        .setStyle(ButtonStyle.Danger)
+        .setEmoji("1095204800964067398"),
+    );
 
     // assigning query
     const url = parseURL(interaction.options.getString("url", true));
     const sendTweet = interaction.options.getBoolean("tweet", false) ?? true;
     const sendMedia = interaction.options.getBoolean("media", false) ?? true;
-    const doTranslate =
-      interaction.options.getBoolean("translate", false) ?? false;
+    const translateLanguage = interaction.options.getString("translate", false);
 
     if (!url.host?.includes("twitter.com") && !url.host?.includes("x.com")) {
       return interaction.editReply("Link không hợp lệ :<");
@@ -86,7 +90,6 @@ export const twitterCommand: AppCommand = {
           url: joinURL("https://twitter.com/", data.user_screen_name),
         });
         embed.setColor("#000000");
-        embed.setTitle("Twitter (X)");
         embed.setURL(data.tweetURL);
         embed.setFields([
           { name: "Replies", value: data.replies.toString(), inline: true },
@@ -100,17 +103,25 @@ export const twitterCommand: AppCommand = {
         });
         embed.setTimestamp(new Date(data.date_epoch * 1000));
 
-        if (doTranslate) {
+        if (translateLanguage) {
           const {
             text: translated,
             from: {
               language: { iso },
             },
-          } = await translate(data.text);
+          } = await translate(data.text, { to: translateLanguage });
 
-          embed.setDescription(
-            `(Translated from ${iso} by Google)\n\n` + translated,
-          );
+          const languageName = new Intl.DisplayNames([translateLanguage], {
+            type: "language",
+          }).of(iso);
+
+          const translateInfo =
+            translateLanguage == "en"
+              ? `(Translated from ${languageName} by Google)\n\n`
+              : translateLanguage == "vi"
+                ? `(Dịch từ ${languageName} bởi Google)\n\n`
+                : "";
+          embed.setDescription(translateInfo + translated);
         } else {
           embed.setDescription(data.text);
         }
@@ -146,8 +157,11 @@ export const twitterCommand: AppCommand = {
       });
     }
 
+    const collectorFilter = (i: any) => i.user.id === interaction.user.id;
+
     try {
       const confirmation = await response.awaitMessageComponent({
+        filter: collectorFilter,
         time: 60_000,
       });
 
