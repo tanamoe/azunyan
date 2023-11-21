@@ -25,6 +25,12 @@ export const pixivCommand: AppCommand = {
     )
     .addBooleanOption((option) =>
       option
+        .setName("details")
+        .setDescription("Gửi chi tiết bài đăng? (mặc định: có)")
+        .setRequired(false),
+    )
+    .addBooleanOption((option) =>
+      option
         .setName("all")
         .setDescription("Gửi tất cả ảnh? (mặc định: có)")
         .setRequired(false),
@@ -41,12 +47,15 @@ export const pixivCommand: AppCommand = {
         new ButtonBuilder()
           .setCustomId("remove")
           .setLabel("Xóa")
-          .setStyle(ButtonStyle.Danger),
+          .setStyle(ButtonStyle.Danger)
+          .setEmoji("1095204800964067398"),
       );
 
     // assigning query
     const url = parseURL(interaction.options.getString("url", true));
-    const all = interaction.options.getBoolean("all", false) ?? true;
+    const sendDetails =
+      interaction.options.getBoolean("details", false) ?? true;
+    const sendAll = interaction.options.getBoolean("all", false) ?? true;
 
     if (!url.host?.includes("pixiv.net")) {
       return interaction.editReply("Link không hợp lệ :<");
@@ -77,45 +86,47 @@ export const pixivCommand: AppCommand = {
       const res = await fetch(`https://www.phixiv.net/api/info?id=${id}`);
       const data: PhixivResponse = await res.json();
 
-      const embed = new EmbedBuilder();
+      if (sendDetails) {
+        const embed = new EmbedBuilder();
 
-      embed.setAuthor({
-        name: `${data.author_name}`,
-        url: joinURL("https://www.pixiv.net/users/", data.author_id),
-      });
-      embed.setColor("#0096FA");
-      embed.setTitle(data.title);
-      embed.setURL(data.url);
-      embed.addFields([
-        {
-          name: "Tags",
-          value: data.tags
-            .map(
-              (tag) =>
-                `[${tag}](${normalizeURL(
-                  joinURL(
-                    "https://www.pixiv.net/tags",
-                    tag.replace("#", ""),
-                    "/artworks",
-                  ),
-                )})`,
-            )
-            .join(" "),
-        },
-      ]);
-      embed.setFooter({
-        text: "Pixiv",
-        iconURL:
-          "https://s.pximg.net/common/images/apple-touch-icon.png?20200601",
-      });
+        embed.setAuthor({
+          name: `${data.author_name}`,
+          url: joinURL("https://www.pixiv.net/users/", data.author_id),
+        });
+        embed.setColor("#0096FA");
+        embed.setTitle(data.title);
+        embed.setURL(data.url);
+        embed.addFields([
+          {
+            name: "Tags",
+            value: data.tags
+              .map(
+                (tag) =>
+                  `[${tag}](${normalizeURL(
+                    joinURL(
+                      "https://www.pixiv.net/tags",
+                      tag.replace("#", ""),
+                      "/artworks",
+                    ),
+                  )})`,
+              )
+              .join(" "),
+          },
+        ]);
+        embed.setFooter({
+          text: "Pixiv",
+          iconURL:
+            "https://s.pximg.net/common/images/apple-touch-icon.png?20200601",
+        });
 
-      if (data.description) {
-        embed.setDescription(td.turndown(data.description));
+        if (data.description) {
+          embed.setDescription(td.turndown(data.description));
+        }
+
+        embeds.push(embed);
       }
 
-      embeds.push(embed);
-
-      if (all) {
+      if (sendAll) {
         for (const image of data.image_proxy_urls.slice(0, 10)) {
           attachments.push(new AttachmentBuilder(image));
         }
@@ -137,8 +148,11 @@ export const pixivCommand: AppCommand = {
       });
     }
 
+    const collectorFilter = (i: any) => i.user.id === interaction.user.id;
+
     try {
       const confirmation = await response.awaitMessageComponent({
+        filter: collectorFilter,
         time: 60_000,
       });
 
