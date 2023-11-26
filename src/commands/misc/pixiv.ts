@@ -2,7 +2,7 @@ import type { AppCommand } from "../../types/command.js";
 
 import { logger } from "../../lib/logger.js";
 
-import { joinURL, normalizeURL, parseURL } from "ufo";
+import { joinURL, normalizeURL, parseFilename, parseURL } from "ufo";
 import TurndownService from "turndown";
 import {
   type ChatInputCommandInteraction,
@@ -34,6 +34,12 @@ export const pixivCommand: AppCommand = {
         .setName("all")
         .setDescription("Gửi tất cả ảnh? (mặc định: có)")
         .setRequired(false),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("spoiler")
+        .setDescription("Đăng ảnh dưới dạng spoiler? (mặc định: không)")
+        .setRequired(false),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     // default to defer the reply
@@ -56,6 +62,7 @@ export const pixivCommand: AppCommand = {
     const sendDetails =
       interaction.options.getBoolean("details", false) ?? true;
     const sendAll = interaction.options.getBoolean("all", false) ?? true;
+    const isSpoiler = interaction.options.getBoolean("spoiler", false) ?? false;
 
     if (!url.host?.includes("pixiv.net")) {
       return interaction.editReply("Link không hợp lệ :<");
@@ -128,13 +135,24 @@ export const pixivCommand: AppCommand = {
 
       if (sendAll) {
         for (const image of data.image_proxy_urls.slice(0, 10)) {
-          attachments.push(new AttachmentBuilder(image));
+          attachments.push(
+            new AttachmentBuilder(image, {
+              name: parseFilename(image, { strict: true }),
+            }).setSpoiler(isSpoiler),
+          );
         }
       } else {
-        attachments.push(new AttachmentBuilder(data.image_proxy_urls[0]));
+        attachments.push(
+          new AttachmentBuilder(data.image_proxy_urls[0], {
+            name: parseFilename(data.image_proxy_urls[0], { strict: true }),
+          }).setSpoiler(isSpoiler),
+        );
       }
 
       await interaction.editReply({
+        content: data.ai_generated
+          ? "## <:kanna_investigate:1095204804483096586> AI generated content"
+          : undefined,
         files: attachments,
         embeds: embeds,
         components: [row],

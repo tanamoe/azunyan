@@ -3,7 +3,7 @@ import type { VxTwitterResponse } from "../../types/vxtwitter.js";
 
 import { logger } from "../../lib/logger.js";
 
-import { joinURL, parseURL, stringifyParsedURL } from "ufo";
+import { joinURL, parseFilename, parseURL, stringifyParsedURL } from "ufo";
 import translate from "@iamtraction/google-translate";
 import {
   type ChatInputCommandInteraction,
@@ -13,8 +13,6 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  CollectorFilter,
-  ButtonInteraction,
 } from "discord.js";
 
 export const twitterCommand: AppCommand = {
@@ -48,6 +46,12 @@ export const twitterCommand: AppCommand = {
           { name: "Tiếng Việt", value: "vi" },
         )
         .setRequired(false),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("spoiler")
+        .setDescription("Đăng ảnh dưới dạng spoiler? (mặc định: không)")
+        .setRequired(false),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     // default to defer the reply
@@ -70,6 +74,7 @@ export const twitterCommand: AppCommand = {
     const sendTweet = interaction.options.getBoolean("tweet", false) ?? true;
     const sendMedia = interaction.options.getBoolean("media", false) ?? true;
     const translateLanguage = interaction.options.getString("translate", false);
+    const isSpoiler = interaction.options.getBoolean("spoiler", false) ?? false;
 
     if (!url.host?.includes("twitter.com") && !url.host?.includes("x.com")) {
       return interaction.editReply("Link không hợp lệ :<");
@@ -132,7 +137,11 @@ export const twitterCommand: AppCommand = {
       if (data.mediaURLs.length > 0 && sendMedia) {
         for (const media of data.media_extended) {
           if (media.type == "image")
-            attachments.push(new AttachmentBuilder(media.url));
+            attachments.push(
+              new AttachmentBuilder(media.url, {
+                name: parseFilename(media.url, { strict: true }),
+              }).setSpoiler(isSpoiler),
+            );
           else if (media.type == "video") videoURLs.push(media.url);
         }
       }
