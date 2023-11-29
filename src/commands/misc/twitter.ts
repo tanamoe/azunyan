@@ -142,7 +142,8 @@ export const twitterCommand: AppCommand = {
                 name: parseFilename(media.url, { strict: true }),
               }).setSpoiler(isSpoiler),
             );
-          else videoURLs.push(media.url);
+          else if (media.type === "gif" || media.type === "video")
+            videoURLs.push(media.url);
         }
       }
 
