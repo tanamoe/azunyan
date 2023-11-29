@@ -8,7 +8,7 @@ type VxTwitterMediaExtended = {
   duration_millis?: number;
   size: VxTwitterSize;
   thumbnail_url: string;
-  type: "image" | "video";
+  type: "image" | "video" | "gif";
   url: "https://pbs.twimg.com/media/FeU5fhPXkCoZXZB.jpg"; // direct URL to the media
 };
 
