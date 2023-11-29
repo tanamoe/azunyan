@@ -121,9 +121,9 @@ export const twitterCommand: AppCommand = {
           }).of(iso);
 
           const translateInfo =
-            translateLanguage == "en"
+            translateLanguage === "en"
               ? `(Translated from ${languageName} by Google)\n\n`
-              : translateLanguage == "vi"
+              : translateLanguage === "vi"
                 ? `(Dịch từ ${languageName} bởi Google)\n\n`
                 : "";
           embed.setDescription(translateInfo + translated);
@@ -136,13 +136,14 @@ export const twitterCommand: AppCommand = {
 
       if (data.mediaURLs.length > 0 && sendMedia) {
         for (const media of data.media_extended) {
-          if (media.type == "image")
+          if (media.type === "image")
             attachments.push(
               new AttachmentBuilder(media.url, {
                 name: parseFilename(media.url, { strict: true }),
               }).setSpoiler(isSpoiler),
             );
-          else if (media.type == "video") videoURLs.push(media.url);
+          else if (media.type === "gif" || media.type === "video")
+            videoURLs.push(media.url);
         }
       }
 
