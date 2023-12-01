@@ -175,7 +175,7 @@ export const twitterCommand: AppCommand = {
           .setEmoji("1095204800964067398"),
       );
 
-      return await interaction.editReply({
+      await interaction.editReply({
         content: "Có chuyện gì vừa xảy ra TwT...",
         components: [row],
       });
