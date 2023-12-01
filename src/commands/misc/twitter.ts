@@ -57,24 +57,18 @@ export const twitterCommand: AppCommand = {
     // default to defer the reply
     const response = await interaction.deferReply();
 
-    // create embed
-    const embeds = [];
-    const attachments = [];
-    const videoURLs = [];
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId("remove")
-        .setLabel("Xóa")
-        .setStyle(ButtonStyle.Danger)
-        .setEmoji("1095204800964067398"),
-    );
-
     // assigning query
     const url = parseURL(interaction.options.getString("url", true));
     const sendTweet = interaction.options.getBoolean("tweet", false) ?? true;
     const sendMedia = interaction.options.getBoolean("media", false) ?? true;
     const translateLanguage = interaction.options.getString("translate", false);
     const isSpoiler = interaction.options.getBoolean("spoiler", false) ?? false;
+
+    // create embed
+    const embeds = [];
+    const attachments = [];
+    const videoURLs = [];
+    const row = new ActionRowBuilder<ButtonBuilder>();
 
     if (!url.host?.includes("twitter.com") && !url.host?.includes("x.com")) {
       return interaction.editReply("Link không hợp lệ :<");
@@ -147,6 +141,18 @@ export const twitterCommand: AppCommand = {
         }
       }
 
+      row.setComponents(
+        new ButtonBuilder()
+          .setLabel("Nguồn")
+          .setStyle(ButtonStyle.Link)
+          .setURL(data.tweetURL),
+        new ButtonBuilder()
+          .setCustomId("remove")
+          .setLabel("Xóa")
+          .setStyle(ButtonStyle.Danger)
+          .setEmoji("1095204800964067398"),
+      );
+
       await interaction.editReply({
         files: attachments,
         embeds: embeds,
@@ -161,7 +167,15 @@ export const twitterCommand: AppCommand = {
     } catch (e) {
       logger.error(e);
 
-      return await interaction.editReply({
+      row.setComponents(
+        new ButtonBuilder()
+          .setCustomId("remove")
+          .setLabel("Xóa")
+          .setStyle(ButtonStyle.Danger)
+          .setEmoji("1095204800964067398"),
+      );
+
+      await interaction.editReply({
         content: "Có chuyện gì vừa xảy ra TwT...",
         components: [row],
       });
@@ -179,8 +193,12 @@ export const twitterCommand: AppCommand = {
         await interaction.deleteReply();
       }
     } catch (e) {
+      for (const button of row.components) {
+        if (button.data.label === "Xóa") button.setDisabled(true);
+      }
+
       await interaction.editReply({
-        components: [],
+        components: [row],
       });
     }
   },
