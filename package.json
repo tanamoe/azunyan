@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "tsc && node --env-file .env dist/index.js",
     "lint": "biome lint .",
-    "format": "biome format \"**/*.{js,ts}\"",
+    "format": "biome format .",
     "prepare": "husky install"
   },
   "author": "catou",
