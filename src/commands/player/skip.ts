@@ -1,90 +1,107 @@
-import type { AppCommand } from "../../types/command.js";
-
 import { logger } from "../../lib/logger.js";
-
-import {
-  type ChatInputCommandInteraction,
-  SlashCommandBuilder,
-} from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 import { useQueue } from "discord-player";
+import { SlashCommand } from "../../model/command.js";
 
-export const skipCommand: AppCommand = {
-  data: new SlashCommandBuilder()
-    .setName("skip")
-    .setDescription("Azu-nyan sẽ cho qua bài này~")
-    .addStringOption((option) =>
-      option
-        .setName("range")
-        .setDescription(
-          'Dùng số để skip 1 bài tại vị trí, một số vị trí như "1,3,5" hoặc một khoảng như "1-10"',
-        ),
-    ),
-  async execute(interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply();
+export const skipCommand = new SlashCommand(
+	new SlashCommandBuilder()
+		.setName("skip")
+		.setDescription("Azu-nyan sẽ cho qua bài này~")
+		.addStringOption((option) =>
+			option
+				.setName("range")
+				.setDescription(
+					'Dùng số để skip 1 bài tại vị trí, một số vị trí như "1,3,5" hoặc một khoảng như "1-10"',
+				),
+		),
+	async (interaction) => {
+		await interaction.deferReply();
 
-    const queue = useQueue(interaction.guild!.id);
+		if (!interaction.guild) {
+			return new Error("Invalid interaction");
+		}
 
-    if (!queue)
-      return await interaction.editReply("Hình như nhạc đang không chơi..?~");
+		const queue = useQueue(interaction.guild.id);
 
-    const range = interaction.options.getString("range");
+		if (!queue) {
+			await interaction.editReply("Hình như nhạc đang không chơi..?~");
+			return new Error("Empty queue");
+		}
 
-    if (range?.match(/^(\d+)-(\d+)$/)) {
-      try {
-        const [from, to] = range.split("-").map((value) => parseInt(value) - 1);
+		const range = interaction.options.getString("range");
 
-        if (from < 0 || to > queue.tracks.size - 1) {
-          return await interaction.editReply("Vị trí không hợp lệ TTwTT");
-        }
+		if (range?.match(/^(\d+)-(\d+)$/)) {
+			try {
+				const [from, to] = range.split("-").map((value) => parseInt(value) - 1);
 
-        for (let i = to; i >= from; i--) {
-          queue.removeTrack(i);
-        }
+				if (from < 0 || to > queue.tracks.size - 1) {
+					await interaction.editReply("Vị trí không hợp lệ TTwTT");
+					return null;
+				}
 
-        return await interaction.editReply(`Đã cho qua bài ${range} <3~`);
-      } catch (error) {
-        logger.error(error);
+				for (let i = to; i >= from; i--) {
+					queue.removeTrack(i);
+				}
 
-        return await interaction.editReply(`Đã có gì xảy ra TTwTT`);
-      }
-    } else if (range?.match(/^(\d+)$/)) {
-      try {
-        const position = parseInt(range) - 1;
+				await interaction.editReply(`Đã cho qua bài ${range} <3~`);
 
-        if (position < 1 || position > queue.tracks.size - 1) {
-          return await interaction.editReply("Vị trí không hợp lệ TTwTT");
-        }
+				return null;
+			} catch (error) {
+				logger.error(error);
 
-        queue.removeTrack(position);
+				await interaction.editReply("Đã có gì xảy ra TTwTT");
+				return new Error("Unhandled error");
+			}
+		}
 
-        return await interaction.editReply(`Đã cho qua bài ${range} <3~`);
-      } catch (error) {
-        logger.error(error);
+		if (range?.match(/^(\d+)$/)) {
+			try {
+				const position = parseInt(range) - 1;
 
-        return await interaction.editReply(`Đã có gì xảy ra TTwTT`);
-      }
-    } else if (range?.match(/^(\d+)(,(\d+))*$/)) {
-      try {
-        const positions = range
-          .split(",")
-          .map((value) => parseInt(value) - 1)
-          .sort((a, b) => b - a)
-          .filter((value) => !(value < 1 || value > queue.tracks.size - 1));
+				if (position < 1 || position > queue.tracks.size - 1) {
+					await interaction.editReply("Vị trí không hợp lệ TTwTT");
+					return null;
+				}
 
-        positions.forEach((value) => queue.removeTrack(value));
+				queue.removeTrack(position);
 
-        return await interaction.editReply(
-          `Đã cho qua bài ${positions.reverse().join(", ")} <3~`,
-        );
-      } catch (error) {
-        logger.error(error);
+				await interaction.editReply(`Đã cho qua bài ${range} <3~`);
+				return null;
+			} catch (error) {
+				logger.error(error);
 
-        return await interaction.editReply(`Đã có gì xảy ra TTwTT`);
-      }
-    }
+				await interaction.editReply("Đã có gì xảy ra TTwTT");
+				return new Error("Unhandled error");
+			}
+		}
 
-    queue.node.skip();
+		if (range?.match(/^(\d+)(,(\d+))*$/)) {
+			try {
+				const positions = range
+					.split(",")
+					.map((value) => parseInt(value) - 1)
+					.sort((a, b) => b - a)
+					.filter((value) => !(value < 1 || value > queue.tracks.size - 1));
 
-    return await interaction.editReply("Đã cho qua <3~");
-  },
-};
+				for (const position of positions) {
+					queue.removeTrack(position);
+				}
+
+				await interaction.editReply(
+					`Đã cho qua bài ${positions.reverse().join(", ")} <3~`,
+				);
+				return null;
+			} catch (error) {
+				logger.error(error);
+
+				await interaction.editReply("Đã có gì xảy ra TTwTT");
+				return new Error("Unhandled error");
+			}
+		}
+
+		queue.node.skip();
+
+		await interaction.editReply("Đã cho qua <3~");
+		return null;
+	},
+);
