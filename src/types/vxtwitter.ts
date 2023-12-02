@@ -1,9 +1,9 @@
-type VxTwitterSize = {
+export type VxTwitterSize = {
   height: number;
   width: number;
 };
 
-type VxTwitterMediaExtended = {
+export type VxTwitterMediaExtended = {
   altText?: string;
   duration_millis?: number;
   size: VxTwitterSize;

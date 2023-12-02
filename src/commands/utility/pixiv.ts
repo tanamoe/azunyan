@@ -1,23 +1,24 @@
-import type { AppCommand } from "../../types/command.js";
-
 import { logger } from "../../lib/logger.js";
-
 import { joinURL, normalizeURL, parseFilename, parseURL } from "ufo";
-import TurndownService from "turndown";
 import {
-  type ChatInputCommandInteraction,
   SlashCommandBuilder,
   EmbedBuilder,
   AttachmentBuilder,
   ActionRowBuilder,
-  MessageActionRowComponentBuilder,
   ButtonBuilder,
   ButtonStyle,
+  CollectorFilter,
+  ButtonInteraction,
+  ComponentType,
+  CacheType,
+  Collection,
 } from "discord.js";
 import type { PhixivResponse } from "../../types/phixiv.js";
+import { SlashCommand } from "../../model/command.js";
+import { parseHTMLtoMarkdown } from "../../utils/markdown.js";
 
-export const pixivCommand: AppCommand = {
-  data: new SlashCommandBuilder()
+export const pixivCommand = new SlashCommand(
+  new SlashCommandBuilder()
     .setName("pixiv")
     .setDescription("Azu-nyan sẽ gửi ảnh Pixiv?!")
     .addStringOption((option) =>
@@ -41,21 +42,14 @@ export const pixivCommand: AppCommand = {
         .setDescription("Đăng ảnh dưới dạng spoiler? (mặc định: không)")
         .setRequired(false),
     ),
-  async execute(interaction: ChatInputCommandInteraction) {
+  async (interaction) => {
     // default to defer the reply
     const response = await interaction.deferReply();
 
     // create objects
     const embeds = [];
     const attachments = [];
-    const row =
-      new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId("remove")
-          .setLabel("Xóa")
-          .setStyle(ButtonStyle.Danger)
-          .setEmoji("1095204800964067398"),
-      );
+    const actionRow = new ActionRowBuilder<ButtonBuilder>();
 
     // assigning query
     const url = parseURL(interaction.options.getString("url", true));
@@ -65,31 +59,18 @@ export const pixivCommand: AppCommand = {
     const isSpoiler = interaction.options.getBoolean("spoiler", false) ?? false;
 
     if (!url.host?.includes("pixiv.net")) {
-      return interaction.editReply("Link không hợp lệ :<");
+      interaction.editReply("Link không hợp lệ :<");
+      return null;
     }
 
     const id = url.pathname.match(/\d+/)?.[0];
 
     if (!id) {
-      return interaction.editReply("Bài viết không hợp lệ :<");
+      interaction.editReply("Bài viết không hợp lệ :<");
+      return null;
     }
 
     try {
-      const td = new TurndownService();
-      td.addRule("remove redirect", {
-        filter: "a",
-        replacement: (content, node) => {
-          const href = (node as HTMLAnchorElement).getAttribute("href");
-
-          if (!href) return content;
-
-          // replace '/jump.php?:url' with encoded url, decode then normalize its query
-          return normalizeURL(
-            decodeURIComponent(href.replace("/jump.php?", "")),
-          );
-        },
-      });
-
       const res = await fetch(`https://www.phixiv.net/api/info?id=${id}`);
       const data: PhixivResponse = await res.json();
 
@@ -126,9 +107,8 @@ export const pixivCommand: AppCommand = {
             "https://s.pximg.net/common/images/apple-touch-icon.png?20200601",
         });
 
-        if (data.description) {
-          embed.setDescription(td.turndown(data.description));
-        }
+        if (data.description)
+          embed.setDescription(parseHTMLtoMarkdown(data.description));
 
         embeds.push(embed);
       }
@@ -149,38 +129,78 @@ export const pixivCommand: AppCommand = {
         );
       }
 
+      actionRow.setComponents(
+        new ButtonBuilder()
+          .setLabel("Nguồn")
+          .setStyle(ButtonStyle.Link)
+          .setURL(data.url),
+        new ButtonBuilder()
+          .setCustomId("remove")
+          .setLabel("Xóa")
+          .setStyle(ButtonStyle.Danger)
+          .setEmoji("1095204800964067398"),
+      );
+
       await interaction.editReply({
         content: data.ai_generated
           ? "## <:kanna_investigate:1095204804483096586> AI generated content"
           : undefined,
         files: attachments,
         embeds: embeds,
-        components: [row],
+        components: [actionRow],
       });
     } catch (e) {
       logger.error(e);
 
+      actionRow.setComponents(
+        new ButtonBuilder()
+          .setCustomId("remove")
+          .setLabel("Xóa")
+          .setStyle(ButtonStyle.Danger)
+          .setEmoji("1095204800964067398"),
+      );
+
       await interaction.editReply({
         content: "Có chuyện gì vừa xảy ra TwT...",
-        components: [row],
+        components: [actionRow],
       });
     }
 
-    const collectorFilter = (i: any) => i.user.id === interaction.user.id;
+    const collectorFilter: CollectorFilter<
+      [
+        ButtonInteraction<CacheType>,
+        Collection<string, ButtonInteraction<CacheType>>,
+      ]
+    > = async (i) => {
+      if (i.user.id !== interaction.user.id)
+        await i.reply({
+          content: "Chỉ chủ bài đăng được xoá~",
+          ephemeral: true,
+        });
+
+      return i.user.id === interaction.user.id;
+    };
 
     try {
-      const confirmation = await response.awaitMessageComponent({
-        filter: collectorFilter,
-        time: 60_000,
-      });
+      const confirmation =
+        await response.awaitMessageComponent<ComponentType.Button>({
+          filter: collectorFilter,
+          time: 60_000,
+        });
 
       if (confirmation.customId === "remove") {
         await interaction.deleteReply();
       }
     } catch (e) {
+      for (const button of actionRow.components) {
+        if (button.data.label === "Xóa") button.setDisabled(true);
+      }
+
       await interaction.editReply({
-        components: [],
+        components: [actionRow],
       });
     }
+
+    return null;
   },
-};
+);

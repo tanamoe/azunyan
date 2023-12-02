@@ -1,36 +1,38 @@
-import type { AppCommand } from "../../types/command.js";
-
-import {
-  type CommandInteraction,
-  SlashCommandBuilder,
-  EmbedBuilder,
-} from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { useQueue } from "discord-player";
+import { SlashCommand } from "../../../model/command.js";
 
-export const queueCommand: AppCommand = {
-  data: new SlashCommandBuilder()
+export const queueCommand = new SlashCommand(
+  new SlashCommandBuilder()
     .setName("queue")
     .setDescription("Azu-nyan sẽ cho bạn xem danh sách phát hiện tại OwO~"),
-  async execute(interaction: CommandInteraction) {
+  async (interaction) => {
     await interaction.deferReply();
 
-    const queue = useQueue(interaction.guild!.id);
+    if (!interaction.guild) {
+      return new Error("Invalid interaction");
+    }
 
-    if (!queue)
-      return await interaction.editReply("Hình như nhạc đang không chơi..?~");
+    const queue = useQueue(interaction.guild.id);
+
+    if (!queue) {
+      await interaction.editReply("Hình như nhạc đang không chơi..?~");
+      return new Error("No player instance");
+    }
 
     const tracks = queue.tracks.toArray();
     const currentTrack = queue.currentTrack;
 
-    if (!currentTrack)
-      return await interaction.editReply(
+    if (!currentTrack) {
+      await interaction.editReply(
         "Hiện không có bài nào trong danh sách phát~~",
       );
+      return new Error("Empty queue");
+    }
 
     const embed = new EmbedBuilder();
 
-    embed.setAuthor({ name: "Danh sách phát" });
-    embed.setColor("#e23622");
+    embed.setColor("#89c4f4");
     embed.setTitle("Hiện đang chơi");
     embed.setDescription(`[${currentTrack.title}](${currentTrack.url})`);
     embed.setThumbnail(currentTrack.thumbnail);
@@ -48,12 +50,20 @@ export const queueCommand: AppCommand = {
             .join("\n"),
         },
         {
+          name: "Thời lượng",
+          value: queue.durationFormatted,
+          inline: true,
+        },
+        {
           name: "Số lượng",
           value: `${tracks.length} bài`,
+          inline: true,
         },
       );
     }
 
-    return await interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
+
+    return null;
   },
-};
+);

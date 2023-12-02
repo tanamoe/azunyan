@@ -1,15 +1,10 @@
-import type { AppCommand } from "../../types/command.js";
-
 import { logger } from "../../lib/logger.js";
-
-import {
-  type ChatInputCommandInteraction,
-  SlashCommandBuilder,
-} from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 import { useQueue } from "discord-player";
+import { SlashCommand } from "../../model/command.js";
 
-export const skipCommand: AppCommand = {
-  data: new SlashCommandBuilder()
+export const skipCommand = new SlashCommand(
+  new SlashCommandBuilder()
     .setName("skip")
     .setDescription("Azu-nyan sẽ cho qua bài này~")
     .addStringOption((option) =>
@@ -19,13 +14,19 @@ export const skipCommand: AppCommand = {
           'Dùng số để skip 1 bài tại vị trí, một số vị trí như "1,3,5" hoặc một khoảng như "1-10"',
         ),
     ),
-  async execute(interaction: ChatInputCommandInteraction) {
+  async (interaction) => {
     await interaction.deferReply();
 
-    const queue = useQueue(interaction.guild!.id);
+    if (!interaction.guild) {
+      return new Error("Invalid interaction");
+    }
 
-    if (!queue)
-      return await interaction.editReply("Hình như nhạc đang không chơi..?~");
+    const queue = useQueue(interaction.guild.id);
+
+    if (!queue) {
+      await interaction.editReply("Hình như nhạc đang không chơi..?~");
+      return new Error("Empty queue");
+    }
 
     const range = interaction.options.getString("range");
 
@@ -34,36 +35,47 @@ export const skipCommand: AppCommand = {
         const [from, to] = range.split("-").map((value) => parseInt(value) - 1);
 
         if (from < 0 || to > queue.tracks.size - 1) {
-          return await interaction.editReply("Vị trí không hợp lệ TTwTT");
+          await interaction.editReply("Vị trí không hợp lệ TTwTT");
+          return null;
         }
 
         for (let i = to; i >= from; i--) {
           queue.removeTrack(i);
         }
 
-        return await interaction.editReply(`Đã cho qua bài ${range} <3~`);
+        await interaction.editReply(`Đã cho qua bài ${range} <3~`);
+
+        return null;
       } catch (error) {
         logger.error(error);
 
-        return await interaction.editReply(`Đã có gì xảy ra TTwTT`);
+        await interaction.editReply("Đã có gì xảy ra TTwTT");
+        return new Error("Unhandled error");
       }
-    } else if (range?.match(/^(\d+)$/)) {
+    }
+
+    if (range?.match(/^(\d+)$/)) {
       try {
         const position = parseInt(range) - 1;
 
         if (position < 1 || position > queue.tracks.size - 1) {
-          return await interaction.editReply("Vị trí không hợp lệ TTwTT");
+          await interaction.editReply("Vị trí không hợp lệ TTwTT");
+          return null;
         }
 
         queue.removeTrack(position);
 
-        return await interaction.editReply(`Đã cho qua bài ${range} <3~`);
+        await interaction.editReply(`Đã cho qua bài ${range} <3~`);
+        return null;
       } catch (error) {
         logger.error(error);
 
-        return await interaction.editReply(`Đã có gì xảy ra TTwTT`);
+        await interaction.editReply("Đã có gì xảy ra TTwTT");
+        return new Error("Unhandled error");
       }
-    } else if (range?.match(/^(\d+)(,(\d+))*$/)) {
+    }
+
+    if (range?.match(/^(\d+)(,(\d+))*$/)) {
       try {
         const positions = range
           .split(",")
@@ -71,20 +83,25 @@ export const skipCommand: AppCommand = {
           .sort((a, b) => b - a)
           .filter((value) => !(value < 1 || value > queue.tracks.size - 1));
 
-        positions.forEach((value) => queue.removeTrack(value));
+        for (const position of positions) {
+          queue.removeTrack(position);
+        }
 
-        return await interaction.editReply(
+        await interaction.editReply(
           `Đã cho qua bài ${positions.reverse().join(", ")} <3~`,
         );
+        return null;
       } catch (error) {
         logger.error(error);
 
-        return await interaction.editReply(`Đã có gì xảy ra TTwTT`);
+        await interaction.editReply("Đã có gì xảy ra TTwTT");
+        return new Error("Unhandled error");
       }
     }
 
     queue.node.skip();
 
-    return await interaction.editReply("Đã cho qua <3~");
+    await interaction.editReply("Đã cho qua <3~");
+    return null;
   },
-};
+);

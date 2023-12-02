@@ -1,4 +1,3 @@
-import type { AppCommand } from "../../types/command.js";
 import type { VxTwitterResponse } from "../../types/vxtwitter.js";
 
 import { logger } from "../../lib/logger.js";
@@ -6,17 +5,22 @@ import { logger } from "../../lib/logger.js";
 import { joinURL, parseFilename, parseURL, stringifyParsedURL } from "ufo";
 import translate from "@iamtraction/google-translate";
 import {
-  type ChatInputCommandInteraction,
   SlashCommandBuilder,
   EmbedBuilder,
   AttachmentBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  CollectorFilter,
+  ButtonInteraction,
+  CacheType,
+  Collection,
+  ComponentType,
 } from "discord.js";
+import { SlashCommand } from "../../model/command.js";
 
-export const twitterCommand: AppCommand = {
-  data: new SlashCommandBuilder()
+export const twitterCommand = new SlashCommand(
+  new SlashCommandBuilder()
     .setName("twitter")
     .setDescription("Azu-nyan sẽ gửi Tweet?!")
     .addStringOption((option) =>
@@ -53,9 +57,15 @@ export const twitterCommand: AppCommand = {
         .setDescription("Đăng ảnh dưới dạng spoiler? (mặc định: không)")
         .setRequired(false),
     ),
-  async execute(interaction: ChatInputCommandInteraction) {
+  async (interaction) => {
     // default to defer the reply
     const response = await interaction.deferReply();
+
+    // create embed
+    const embeds = [];
+    const attachments = [];
+    const videoURLs = [];
+    const actionRow = new ActionRowBuilder<ButtonBuilder>();
 
     // assigning query
     const url = parseURL(interaction.options.getString("url", true));
@@ -64,14 +74,9 @@ export const twitterCommand: AppCommand = {
     const translateLanguage = interaction.options.getString("translate", false);
     const isSpoiler = interaction.options.getBoolean("spoiler", false) ?? false;
 
-    // create embed
-    const embeds = [];
-    const attachments = [];
-    const videoURLs = [];
-    const row = new ActionRowBuilder<ButtonBuilder>();
-
     if (!url.host?.includes("twitter.com") && !url.host?.includes("x.com")) {
-      return interaction.editReply("Link không hợp lệ :<");
+      interaction.editReply("Link không hợp lệ :<");
+      return null;
     }
 
     try {
@@ -105,9 +110,7 @@ export const twitterCommand: AppCommand = {
         if (translateLanguage) {
           const {
             text: translated,
-            from: {
-              language: { iso },
-            },
+            from: { language: { iso } },
           } = await translate(data.text, { to: translateLanguage });
 
           const languageName = new Intl.DisplayNames([translateLanguage], {
@@ -128,7 +131,7 @@ export const twitterCommand: AppCommand = {
         embeds.push(embed);
       }
 
-      if (data.mediaURLs.length > 0 && sendMedia) {
+      if (sendMedia && data.mediaURLs.length > 0) {
         for (const media of data.media_extended) {
           if (media.type === "image")
             attachments.push(
@@ -141,7 +144,7 @@ export const twitterCommand: AppCommand = {
         }
       }
 
-      row.setComponents(
+      actionRow.setComponents(
         new ButtonBuilder()
           .setLabel("Nguồn")
           .setStyle(ButtonStyle.Link)
@@ -156,10 +159,11 @@ export const twitterCommand: AppCommand = {
       await interaction.editReply({
         files: attachments,
         embeds: embeds,
-        components: [row],
+        content: !sendTweet ? videoURLs.join("\n") : undefined,
+        components: [actionRow],
       });
 
-      if (videoURLs.length > 0) {
+      if (sendTweet && videoURLs.length > 0) {
         await interaction.followUp({
           content: videoURLs.join("\n"),
         });
@@ -167,7 +171,7 @@ export const twitterCommand: AppCommand = {
     } catch (e) {
       logger.error(e);
 
-      row.setComponents(
+      actionRow.setComponents(
         new ButtonBuilder()
           .setCustomId("remove")
           .setLabel("Xóa")
@@ -177,29 +181,45 @@ export const twitterCommand: AppCommand = {
 
       await interaction.editReply({
         content: "Có chuyện gì vừa xảy ra TwT...",
-        components: [row],
+        components: [actionRow],
       });
     }
 
-    const collectorFilter = (i: any) => i.user.id === interaction.user.id;
+    const collectorFilter: CollectorFilter<
+      [
+        ButtonInteraction<CacheType>,
+        Collection<string, ButtonInteraction<CacheType>>,
+      ]
+    > = async (i) => {
+      if (i.user.id !== interaction.user.id)
+        await i.reply({
+          content: "Chỉ chủ bài đăng được xoá~",
+          ephemeral: true,
+        });
+
+      return i.user.id === interaction.user.id;
+    };
 
     try {
-      const confirmation = await response.awaitMessageComponent({
-        filter: collectorFilter,
-        time: 60_000,
-      });
+      const confirmation =
+        await response.awaitMessageComponent<ComponentType.Button>({
+          filter: collectorFilter,
+          time: 60_000,
+        });
 
       if (confirmation.customId === "remove") {
         await interaction.deleteReply();
       }
     } catch (e) {
-      for (const button of row.components) {
+      for (const button of actionRow.components) {
         if (button.data.label === "Xóa") button.setDisabled(true);
       }
 
       await interaction.editReply({
-        components: [row],
+        components: [actionRow],
       });
     }
+
+    return null;
   },
-};
+);

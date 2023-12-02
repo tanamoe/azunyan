@@ -1,12 +1,13 @@
-import type { AppCommand } from "../../types/command.js";
+import { SlashCommandBuilder } from "discord.js";
+import { SlashCommand } from "../../model/command.js";
 
-import { type CommandInteraction, SlashCommandBuilder } from "discord.js";
-
-export const pingCommand: AppCommand = {
-  data: new SlashCommandBuilder()
+export const pingCommand = new SlashCommand(
+  new SlashCommandBuilder()
     .setName("ping")
     .setDescription("Azu-nyan sẽ làm gì đó?!"),
-  async execute(interaction: CommandInteraction) {
+  async (interaction) => {
     await interaction.reply("Pong desu~!");
+
+    return null;
   },
-};
+);

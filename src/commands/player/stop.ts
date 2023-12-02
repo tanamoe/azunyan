@@ -1,22 +1,30 @@
-import type { AppCommand } from "../../types/command.js";
-
-import { type CommandInteraction, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 import { useQueue } from "discord-player";
+import { SlashCommand } from "../../model/command.js";
 
-export const stopCommand: AppCommand = {
-  data: new SlashCommandBuilder()
+export const stopCommand = new SlashCommand(
+  new SlashCommandBuilder()
     .setName("stop")
     .setDescription("Azu-nyan sẽ dừng nhạc và đi ngủ~"),
-  async execute(interaction: CommandInteraction) {
+  async (interaction) => {
     await interaction.deferReply();
 
-    const queue = useQueue(interaction.guild!.id);
+    if (!interaction.guild) {
+      return new Error("Invalid interaction");
+    }
 
-    if (!queue)
-      return await interaction.editReply("Hình như nhạc đang không chơi..?~");
+    const queue = useQueue(interaction.guild.id);
+
+    if (!queue) {
+      await interaction.editReply("Hình như nhạc đang không chơi..?~");
+
+      return null;
+    }
 
     queue.delete();
 
-    return await interaction.editReply("Sayonanya <3~");
+    await interaction.editReply("Sayonanya <3~");
+
+    return null;
   },
-};
+);
