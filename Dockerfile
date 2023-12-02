@@ -1,4 +1,4 @@
-FROM node:20.10-alpine
+FROM node:21.3-alpine
 
 # deps: install runtime dependencies
 RUN apk update
