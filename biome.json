@@ -10,7 +10,7 @@
 		}
 	},
 	"files": {
-		"ignore": ["build/**/*"],
+		"ignore": ["dist/**/*"],
 		"ignoreUnknown": true
 	}
 }
