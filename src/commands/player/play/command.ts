@@ -2,7 +2,6 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  ComponentType,
   EmbedBuilder,
   GuildMember,
   SlashCommandBuilder,
@@ -11,7 +10,6 @@ import {
 import { AutocompleteSlashCommand } from "../../../model/command.js";
 import { QueryType, useMainPlayer } from "discord-player";
 import { logger } from "../../../lib/logger.js";
-import { queueButton } from "../queue/button.js";
 
 export const playCommand = new AutocompleteSlashCommand(
   new SlashCommandBuilder()
@@ -34,7 +32,7 @@ export const playCommand = new AutocompleteSlashCommand(
     const query = interaction.options.getString("query", true);
 
     // default to defer the reply
-    const response = await interaction.deferReply();
+    await interaction.deferReply();
 
     // create embed
     const embed = new EmbedBuilder();
