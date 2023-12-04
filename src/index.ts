@@ -89,7 +89,7 @@ player.extractors.register(SpotifyExtractor, {});
 player.extractors.register(AttachmentExtractor, {});
 player.extractors.register(AppleMusicExtractor, {});
 
-logger.success("Ready.");
+logger.ready("Logged in and ready");
 
 // Start the bot
 client.login(DISCORD_TOKEN);

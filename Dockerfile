@@ -1,20 +1,23 @@
-FROM node:20.10-alpine
+FROM oven/bun:alpine as build
 
-# deps: install runtime dependencies
 RUN apk update
-RUN apk add --no-cache ffmpeg python3 alpine-sdk
-
-# enable node's corepack, install pnpm
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN apk add python3 alpine-sdk
 
 # copy dirs
 COPY . /app
 WORKDIR /app
 
 # install the dependencies
-RUN pnpm install --frozen-lockfile
+RUN bun install --frozen-lockfile
+
+FROM node:20.10.0-alpine as image
+
+# deps: install runtime dependencies
+RUN apk update
+RUN apk add --no-cache ffmpeg
+
+COPY --from=build /app /app
+WORKDIR /app
 
 # run the bot
-CMD ["pnpm", "start"]
+CMD ["node", "--env-file .env", "dist/index.js"]
