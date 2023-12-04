@@ -57,22 +57,18 @@ export const playContextMenu = new ContextMenuCommand(
     try {
       const { track } = await player.play(channel, attachment.url);
 
-      embed.setAuthor({
-        name: track.author,
-      });
+      if (track.author && track.author !== "")
+        embed.setAuthor({
+          name: track.author.substring(0, 256),
+        });
       embed.setURL(track.url);
-      embed.setTitle(track.title);
+      embed.setTitle(track.title.substring(0, 256));
       embed.setDescription("Thêm vào danh sách phát.");
       embed.setThumbnail(track.thumbnail);
       embed.addFields([
         {
           name: "Độ dài",
           value: track.duration,
-          inline: true,
-        },
-        {
-          name: "Nguồn",
-          value: track.source,
           inline: true,
         },
       ]);
