@@ -20,4 +20,4 @@ COPY --from=build /app /app
 WORKDIR /app
 
 # run the bot
-CMD ["node", "--env-file .env", "dist/index.js"]
+CMD ["npm", "run", "start"]
