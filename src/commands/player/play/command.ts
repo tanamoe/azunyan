@@ -66,11 +66,12 @@ export const playCommand = new AutocompleteSlashCommand(
       if (search.hasPlaylist() && search.playlist) {
         await player.play(channel, search.playlist);
 
-        embed.setAuthor({
-          name: search.playlist.author.name,
-        });
+        if (search.playlist.author?.name && search.playlist.author.name !== "")
+          embed.setAuthor({
+            name: search.playlist.author.name.substring(0, 256),
+          });
         embed.setURL(search.playlist.url);
-        embed.setTitle(search.playlist.title);
+        embed.setTitle(search.playlist.title.substring(0, 256));
         embed.setDescription(
           `Thêm vào danh sách phát ${search.playlist.tracks.length} bài.`,
         );
@@ -90,11 +91,12 @@ export const playCommand = new AutocompleteSlashCommand(
       } else {
         const { track } = await player.play(channel, search);
 
-        embed.setAuthor({
-          name: track.author,
-        });
+        if (track.author && track.author !== "")
+          embed.setAuthor({
+            name: track.author.substring(0, 256),
+          });
         embed.setURL(track.url);
-        embed.setTitle(track.title);
+        embed.setTitle(track.title.substring(0, 256));
         embed.setDescription("Thêm vào danh sách phát.");
         embed.setThumbnail(track.thumbnail);
         embed.addFields([
