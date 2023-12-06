@@ -163,18 +163,24 @@ export const queueButton = new ButtonCommand(async (interaction) => {
       );
     }
 
-    if ((page + 1) * 5 > tracks.length) {
+    if ((page + 1) * 5 >= tracks.length) {
       actionRow.components
         .find((component) => component.data.label === "Sau")
         ?.setDisabled(true);
-    } else if (page === 0) {
+    } else {
+      actionRow.components
+        .find((component) => component.data.label === "Sau")
+        ?.setDisabled(false);
+    }
+
+    if (page === 0) {
       actionRow.components
         .find((component) => component.data.label === "Trước")
         ?.setDisabled(true);
     } else {
-      for (const component of actionRow.components) {
-        component.setDisabled(false);
-      }
+      actionRow.components
+        .find((component) => component.data.label === "Trước")
+        ?.setDisabled(false);
     }
 
     await i.update({ embeds: [embed], components: [actionRow] });
