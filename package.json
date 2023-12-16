@@ -27,6 +27,7 @@
     "discord-api-types": "^0.37.62",
     "discord-player": "^6.6.6",
     "discord.js": "^14.13.0",
+    "dotenv": "^16.3.1",
     "mediaplex": "^0.0.9",
     "play-dl": "^1.9.7",
     "turndown": "^7.1.2",
