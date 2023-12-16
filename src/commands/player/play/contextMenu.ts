@@ -30,7 +30,9 @@ export const playContextMenu = new ContextMenuCommand(
       return new Error("No attachment found");
     }
 
-    if (attachment.name.match(/^.+\.(mp3|m4a|ogg|wav|flac|aac)$/g) == null) {
+    if (
+      attachment.name.match(/^.+\.(mp3|m4a|ogg|wav|flac|aac|mp4|mkv)$/g) == null
+    ) {
       await interaction.editReply("Định dạng chưa được hỗ trợ T^T");
       return new Error("Unsupported format");
     }
