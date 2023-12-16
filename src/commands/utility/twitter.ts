@@ -1,8 +1,6 @@
-import type { VxTwitterResponse } from "../../types/vxtwitter.js";
-
 import { logger } from "../../lib/logger.js";
 
-import { joinURL, parseFilename, parseURL, stringifyParsedURL } from "ufo";
+import { joinURL, parseFilename } from "ufo";
 import translate from "@iamtraction/google-translate";
 import {
   SlashCommandBuilder,
@@ -16,8 +14,10 @@ import {
   CacheType,
   Collection,
   ComponentType,
+  ChatInputCommandInteraction,
 } from "discord.js";
 import { SlashCommand } from "../../model/command.js";
+import { Twitter } from "../../lib/twitter.js";
 
 export const twitterCommand = new SlashCommand(
   new SlashCommandBuilder()
@@ -68,22 +68,27 @@ export const twitterCommand = new SlashCommand(
     const actionRow = new ActionRowBuilder<ButtonBuilder>();
 
     // assigning query
-    const url = parseURL(interaction.options.getString("url", true));
+    const url = interaction.options.getString("url", true);
     const sendTweet = interaction.options.getBoolean("tweet", false) ?? true;
     const sendMedia = interaction.options.getBoolean("media", false) ?? true;
     const translateLanguage = interaction.options.getString("translate", false);
     const isSpoiler = interaction.options.getBoolean("spoiler", false) ?? false;
 
-    if (!url.host?.includes("twitter.com") && !url.host?.includes("x.com")) {
+    const [normalizedUrl, normalizeErr] = Twitter.normalizeUrl(url);
+    if (normalizeErr != null) {
       interaction.editReply("Link không hợp lệ :<");
-      return null;
+      return normalizeErr;
     }
 
     try {
-      const res = await fetch(
-        joinURL("https://api.vxtwitter.com/", stringifyParsedURL(url)),
-      );
-      const data: VxTwitterResponse = await res.json();
+      const [data, err] = await Twitter.extractTweet(normalizedUrl);
+      if (err != null) {
+        throw err;
+      }
+      if (data == null) {
+        interaction.editReply("Không tìm thấy tweet :<");
+        return null;
+      }
 
       if (sendTweet) {
         const embed = new EmbedBuilder();
@@ -169,20 +174,7 @@ export const twitterCommand = new SlashCommand(
         });
       }
     } catch (e) {
-      logger.error(e);
-
-      actionRow.setComponents(
-        new ButtonBuilder()
-          .setCustomId("remove")
-          .setLabel("Xóa")
-          .setStyle(ButtonStyle.Danger)
-          .setEmoji("1095204800964067398"),
-      );
-
-      await interaction.editReply({
-        content: "Có chuyện gì vừa xảy ra TwT...",
-        components: [actionRow],
-      });
+      await onError(e, interaction, actionRow);
     }
 
     const collectorFilter: CollectorFilter<
@@ -223,3 +215,25 @@ export const twitterCommand = new SlashCommand(
     return null;
   },
 );
+
+async function onError(
+  e: unknown,
+  interaction: ChatInputCommandInteraction,
+  actionRow: ActionRowBuilder<ButtonBuilder>,
+  message?: string,
+) {
+  logger.error(e);
+
+  actionRow.setComponents(
+    new ButtonBuilder()
+      .setCustomId("remove")
+      .setLabel("Xóa")
+      .setStyle(ButtonStyle.Danger)
+      .setEmoji("1095204800964067398"),
+  );
+
+  await interaction.editReply({
+    content: message ?? "Có chuyện gì vừa xảy ra TwT...",
+    components: [actionRow],
+  });
+}
