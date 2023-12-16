@@ -9,7 +9,7 @@ export type VxTwitterMediaExtended = {
   size: VxTwitterSize;
   thumbnail_url: string;
   type: "image" | "video" | "gif";
-  url: "https://pbs.twimg.com/media/FeU5fhPXkCoZXZB.jpg"; // direct URL to the media
+  url: string; // direct URL to the media
 };
 
 export type VxTwitterResponse = {
