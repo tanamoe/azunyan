@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { logger } from "./lib/logger.js";
 import { register } from "./lib/register.js";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
