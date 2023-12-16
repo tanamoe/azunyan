@@ -15,9 +15,11 @@ import {
   Collection,
   ComponentType,
   ChatInputCommandInteraction,
+  InteractionResponse,
 } from "discord.js";
 import { SlashCommand } from "../../model/command.js";
 import { Twitter } from "../../lib/twitter.js";
+import { VxTwitterResponse } from "../../types/vxtwitter.js";
 
 export const twitterCommand = new SlashCommand(
   new SlashCommandBuilder()
@@ -92,47 +94,11 @@ export const twitterCommand = new SlashCommand(
 
       if (sendTweet) {
         const embed = new EmbedBuilder();
-
-        embed.setAuthor({
-          name: `${data.user_name} (@${data.user_screen_name})`,
-          iconURL: data.user_profile_image_url,
-          url: joinURL("https://twitter.com/", data.user_screen_name),
-        });
-        embed.setColor("#000000");
-        embed.setURL(data.tweetURL);
-        embed.setFields([
-          { name: "Replies", value: data.replies.toString(), inline: true },
-          { name: "Reposts", value: data.retweets.toString(), inline: true },
-          { name: "Likes", value: data.likes.toString(), inline: true },
-        ]);
-        embed.setFooter({
-          text: "Twitter (X)",
-          iconURL:
-            "https://abs.twimg.com/responsive-web/client-web-legacy/icon-ios.77d25eba.png",
-        });
-        embed.setTimestamp(new Date(data.date_epoch * 1000));
+        await embedTweet(embed, data);
 
         if (translateLanguage) {
-          const {
-            text: translated,
-            from: { language: { iso } },
-          } = await translate(data.text, { to: translateLanguage });
-
-          const languageName = new Intl.DisplayNames([translateLanguage], {
-            type: "language",
-          }).of(iso);
-
-          const translateInfo =
-            translateLanguage === "en"
-              ? `(Translated from ${languageName} by Google)\n\n`
-              : translateLanguage === "vi"
-                ? `(Dịch từ ${languageName} bởi Google)\n\n`
-                : "";
-          embed.setDescription(translateInfo + translated);
-        } else {
-          embed.setDescription(data.text);
+          await translateTweet(embed, data, translateLanguage);
         }
-
         embeds.push(embed);
       }
 
@@ -145,7 +111,8 @@ export const twitterCommand = new SlashCommand(
               }).setSpoiler(isSpoiler),
             );
           else if (media.type === "gif" || media.type === "video")
-            videoURLs.push(media.url);
+            if (isSpoiler) videoURLs.push(`|| ${media.url} ||`);
+            else videoURLs.push(media.url);
         }
       }
 
@@ -176,42 +143,7 @@ export const twitterCommand = new SlashCommand(
     } catch (e) {
       await onError(e, interaction, actionRow);
     }
-
-    const collectorFilter: CollectorFilter<
-      [
-        ButtonInteraction<CacheType>,
-        Collection<string, ButtonInteraction<CacheType>>,
-      ]
-    > = async (i) => {
-      if (i.user.id !== interaction.user.id)
-        await i.reply({
-          content: "Chỉ chủ bài đăng được xoá~",
-          ephemeral: true,
-        });
-
-      return i.user.id === interaction.user.id;
-    };
-
-    try {
-      const confirmation =
-        await response.awaitMessageComponent<ComponentType.Button>({
-          filter: collectorFilter,
-          time: 60_000,
-        });
-
-      if (confirmation.customId === "remove") {
-        await interaction.deleteReply();
-      }
-    } catch (e) {
-      for (const button of actionRow.components) {
-        if (button.data.label === "Xóa") button.setDisabled(true);
-      }
-
-      await interaction.editReply({
-        components: [actionRow],
-      });
-    }
-
+    await collectRemoveRequest(interaction, response, actionRow);
     return null;
   },
 );
@@ -236,4 +168,95 @@ async function onError(
     content: message ?? "Có chuyện gì vừa xảy ra TwT...",
     components: [actionRow],
   });
+}
+
+async function embedTweet(embed: EmbedBuilder, data: VxTwitterResponse) {
+  embed.setAuthor({
+    name: `${data.user_name} (@${data.user_screen_name})`,
+    iconURL: data.user_profile_image_url,
+    url: joinURL("https://twitter.com/", data.user_screen_name),
+  });
+  embed.setColor("#000000");
+  embed.setURL(data.tweetURL);
+  embed.setFields([
+    { name: "Replies", value: data.replies.toString(), inline: true },
+    { name: "Reposts", value: data.retweets.toString(), inline: true },
+    { name: "Likes", value: data.likes.toString(), inline: true },
+  ]);
+  embed.setFooter({
+    text: "Twitter (X)",
+    iconURL:
+      "https://abs.twimg.com/responsive-web/client-web-legacy/icon-ios.77d25eba.png",
+  });
+  embed.setTimestamp(new Date(data.date_epoch * 1000));
+  if (data.text !== "") {
+    embed.setDescription(data.text);
+  }
+}
+
+async function translateTweet(
+  embed: EmbedBuilder,
+  data: VxTwitterResponse,
+  translateLanguage: string,
+) {
+  if (data.text === "") {
+    return;
+  }
+  const {
+    text: translated,
+    from: { language: { iso } },
+  } = await translate(data.text, { to: translateLanguage });
+
+  const languageName = new Intl.DisplayNames([translateLanguage], {
+    type: "language",
+  }).of(iso);
+
+  const translateInfo =
+    translateLanguage === "en"
+      ? `(Translated from ${languageName} by Google)\n\n`
+      : translateLanguage === "vi"
+        ? `(Dịch từ ${languageName} bởi Google)\n\n`
+        : "";
+  embed.setDescription(translateInfo + translated);
+}
+
+async function collectRemoveRequest(
+  interaction: ChatInputCommandInteraction,
+  response: InteractionResponse<boolean>,
+  actionRow: ActionRowBuilder<ButtonBuilder>,
+) {
+  const collectorFilter: CollectorFilter<
+    [
+      ButtonInteraction<CacheType>,
+      Collection<string, ButtonInteraction<CacheType>>,
+    ]
+  > = async (i) => {
+    if (i.user.id !== interaction.user.id)
+      await i.reply({
+        content: "Chỉ chủ bài đăng được xoá~",
+        ephemeral: true,
+      });
+
+    return i.user.id === interaction.user.id;
+  };
+
+  try {
+    const confirmation =
+      await response.awaitMessageComponent<ComponentType.Button>({
+        filter: collectorFilter,
+        time: 60_000,
+      });
+
+    if (confirmation.customId === "remove") {
+      await interaction.deleteReply();
+    }
+  } catch (e) {
+    for (const button of actionRow.components) {
+      if (button.data.label === "Xóa") button.setDisabled(true);
+    }
+
+    await interaction.editReply({
+      components: [actionRow],
+    });
+  }
 }
