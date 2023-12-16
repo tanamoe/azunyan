@@ -12,7 +12,7 @@ export type ExtractorResponse =
 type ExtractorFn = (path: string) => Promise<ExtractorResponse>;
 
 export class Twitter {
-  lintComplain() {
+  private lintComplain() {
     return 0;
   }
 
