@@ -80,7 +80,7 @@ export const queueButton = new ButtonCommand(async (interaction) => {
     new ButtonBuilder()
       .setCustomId("next")
       .setLabel("Sau")
-      .setDisabled(tracks.length < 5)
+      .setDisabled(tracks.length <= 5)
       .setStyle(ButtonStyle.Secondary),
   );
 
@@ -163,7 +163,7 @@ export const queueButton = new ButtonCommand(async (interaction) => {
       );
     }
 
-    if ((page + 1) * 5 >= tracks.length) {
+    if ((page + 1) * 5 > tracks.length) {
       actionRow.components
         .find((component) => component.data.label === "Sau")
         ?.setDisabled(true);
