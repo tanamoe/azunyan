@@ -5,6 +5,7 @@ import { Player } from "discord-player";
 import {
   AppleMusicExtractor,
   AttachmentExtractor,
+  SoundCloudExtractor,
   SpotifyExtractor,
   YouTubeExtractor,
 } from "@discord-player/extractor";
@@ -88,6 +89,7 @@ player.extractors.register(YouTubeExtractor, {});
 player.extractors.register(SpotifyExtractor, {});
 player.extractors.register(AttachmentExtractor, {});
 player.extractors.register(AppleMusicExtractor, {});
+player.extractors.register(SoundCloudExtractor, {});
 
 logger.ready("Logged in and ready");
 
