@@ -1,7 +1,4 @@
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
   EmbedBuilder,
   GuildMember,
   SlashCommandBuilder,
@@ -28,7 +25,6 @@ export const playCommand = new AutocompleteSlashCommand(
     }
 
     const member = interaction.member as GuildMember;
-    const actionRow = new ActionRowBuilder<ButtonBuilder>();
     const query = interaction.options.getString("query", true);
 
     // default to defer the reply
@@ -120,16 +116,8 @@ export const playCommand = new AutocompleteSlashCommand(
       });
       embed.setTimestamp();
 
-      actionRow.setComponents(
-        new ButtonBuilder()
-          .setCustomId("queue")
-          .setLabel("Danh sách phát")
-          .setStyle(ButtonStyle.Secondary),
-      );
-
       await interaction.editReply({
         embeds: [embed],
-        components: [actionRow],
       });
     } catch (e) {
       logger.error(e);
