@@ -21,7 +21,6 @@ import { skipCommand } from "./commands/player/skip.js";
 import { stopCommand } from "./commands/player/stop.js";
 import { playContextMenu } from "./commands/player/play/contextMenu.js";
 import { queueCommand } from "./commands/player/queue/command.js";
-import { queueButton } from "./commands/player/queue/button.js";
 
 if (!process.env.DISCORD_TOKEN)
   throw new Error("Discord token is not defined.");
@@ -40,23 +39,12 @@ const commands = [
   skipCommand,
   stopCommand,
   playContextMenu,
-  queueButton,
 ];
 
 await register(commands);
 
 // Handle interactions
 client.on(Events.InteractionCreate, async (interaction) => {
-  if (
-    interaction.isMessageComponent() &&
-    interaction.isButton() &&
-    interaction.customId === "queue"
-  ) {
-    await queueButton.execute(interaction);
-
-    return;
-  }
-
   if (interaction.isCommand()) {
     const command = commands.find(
       (command) => command.data?.name === interaction.commandName,
