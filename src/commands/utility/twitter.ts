@@ -201,7 +201,9 @@ async function translateEmbed(embed: EmbedBuilder, translateLanguage: string) {
   }
   const {
     text: translated,
-    from: { language: { iso } },
+    from: {
+      language: { iso },
+    },
   } = await translate(embed.data.description, { to: translateLanguage });
 
   const languageName = new Intl.DisplayNames([translateLanguage], {
