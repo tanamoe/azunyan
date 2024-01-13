@@ -1,7 +1,3 @@
-import { logger } from "./lib/logger.js";
-import { register } from "./lib/register.js";
-import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
-import { Player } from "discord-player";
 import {
   AppleMusicExtractor,
   AttachmentExtractor,
@@ -9,18 +5,22 @@ import {
   SpotifyExtractor,
   YouTubeExtractor,
 } from "@discord-player/extractor";
+import { Player } from "discord-player";
+import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
+import { playCommand } from "./commands/player/play/command.js";
+import { playContextMenu } from "./commands/player/play/contextMenu.js";
+import { queueCommand } from "./commands/player/queue/command.js";
+import { skipCommand } from "./commands/player/skip.js";
+import { stopCommand } from "./commands/player/stop.js";
+import { pixivCommand } from "./commands/utility/pixiv.js";
+import { twitterCommand } from "./commands/utility/twitter.js";
+import { logger } from "./lib/logger.js";
+import { register } from "./lib/register.js";
 import {
   AutocompleteSlashCommand,
   ContextMenuCommand,
   SlashCommand,
 } from "./model/command.js";
-import { twitterCommand } from "./commands/utility/twitter.js";
-import { pixivCommand } from "./commands/utility/pixiv.js";
-import { playCommand } from "./commands/player/play/command.js";
-import { skipCommand } from "./commands/player/skip.js";
-import { stopCommand } from "./commands/player/stop.js";
-import { playContextMenu } from "./commands/player/play/contextMenu.js";
-import { queueCommand } from "./commands/player/queue/command.js";
 
 if (!process.env.DISCORD_TOKEN)
   throw new Error("Discord token is not defined.");

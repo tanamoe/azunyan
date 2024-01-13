@@ -1,12 +1,12 @@
+import { useQueue } from "discord-player";
 import {
-  SlashCommandBuilder,
-  EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
+  EmbedBuilder,
+  SlashCommandBuilder,
 } from "discord.js";
-import { useQueue } from "discord-player";
 import { SlashCommand } from "../../../model/command.js";
 
 export const queueCommand = new SlashCommand(

@@ -1,28 +1,28 @@
 import { logger } from "../../lib/logger.js";
 
-import { joinURL, parseFilename } from "ufo";
 import translate from "@iamtraction/google-translate";
 import {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  AttachmentBuilder,
   ActionRowBuilder,
+  AttachmentBuilder,
   ButtonBuilder,
-  ButtonStyle,
-  CollectorFilter,
   ButtonInteraction,
+  ButtonStyle,
   CacheType,
-  Collection,
-  ComponentType,
   ChatInputCommandInteraction,
+  Collection,
+  CollectorFilter,
+  ComponentType,
+  EmbedBuilder,
   InteractionResponse,
+  SlashCommandBuilder,
   bold,
   escapeMarkdown,
 } from "discord.js";
-import { SlashCommand } from "../../model/command.js";
-import { Twitter } from "../../lib/twitter.js";
-import { VxTwitterResponse } from "../../types/vxtwitter.js";
 import Tesseract, { createWorker } from "tesseract.js";
+import { joinURL, parseFilename } from "ufo";
+import { Twitter } from "../../lib/twitter.js";
+import { SlashCommand } from "../../model/command.js";
+import { VxTwitterResponse } from "../../types/vxtwitter.js";
 
 export const twitterCommand = new SlashCommand(
   new SlashCommandBuilder()

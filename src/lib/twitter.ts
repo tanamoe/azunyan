@@ -1,10 +1,10 @@
+import { HTTPError } from "discord.js";
 import { joinURL, parseURL } from "ufo";
+import { FxTwitterMedia, FxTwitterResponse } from "../types/fxtwitter.js";
 import {
   VxTwitterMediaExtended,
   VxTwitterResponse,
 } from "../types/vxtwitter.js";
-import { HTTPError } from "discord.js";
-import { FxTwitterMedia, FxTwitterResponse } from "../types/fxtwitter.js";
 
 export type ExtractorResponse =
   | [VxTwitterResponse | null, null]
