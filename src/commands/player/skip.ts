@@ -1,6 +1,6 @@
-import { logger } from "../../lib/logger.js";
-import { SlashCommandBuilder } from "discord.js";
 import { useQueue } from "discord-player";
+import { SlashCommandBuilder } from "discord.js";
+import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
 
 export const skipCommand = new SlashCommand(

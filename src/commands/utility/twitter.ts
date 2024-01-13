@@ -1,25 +1,26 @@
 import { logger } from "../../lib/logger.js";
 
-import { joinURL, parseFilename } from "ufo";
 import translate from "@iamtraction/google-translate";
 import {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  AttachmentBuilder,
   ActionRowBuilder,
+  AttachmentBuilder,
   ButtonBuilder,
-  ButtonStyle,
-  CollectorFilter,
   ButtonInteraction,
+  ButtonStyle,
   CacheType,
-  Collection,
-  ComponentType,
   ChatInputCommandInteraction,
+  Collection,
+  CollectorFilter,
+  ComponentType,
+  EmbedBuilder,
   InteractionResponse,
+  SlashCommandBuilder,
   escapeMarkdown,
 } from "discord.js";
-import { SlashCommand } from "../../model/command.js";
+import Tesseract, { createWorker } from "tesseract.js";
+import { joinURL, parseFilename } from "ufo";
 import { Twitter } from "../../lib/twitter.js";
+import { SlashCommand } from "../../model/command.js";
 import { VxTwitterResponse } from "../../types/vxtwitter.js";
 
 export const twitterCommand = new SlashCommand(
@@ -201,7 +202,9 @@ async function translateEmbed(embed: EmbedBuilder, translateLanguage: string) {
   }
   const {
     text: translated,
-    from: { language: { iso } },
+    from: {
+      language: { iso },
+    },
   } = await translate(embed.data.description, { to: translateLanguage });
 
   const languageName = new Intl.DisplayNames([translateLanguage], {

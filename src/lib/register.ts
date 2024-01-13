@@ -1,5 +1,5 @@
-import { logger } from "../lib/logger.js";
 import { REST, Routes } from "discord.js";
+import { logger } from "../lib/logger.js";
 import {
   ButtonCommand,
   ContextMenuCommand,

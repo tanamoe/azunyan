@@ -1,12 +1,12 @@
+import { QueryType, useMainPlayer } from "discord-player";
 import {
   EmbedBuilder,
   GuildMember,
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "discord.js";
-import { AutocompleteSlashCommand } from "../../../model/command.js";
-import { QueryType, useMainPlayer } from "discord-player";
 import { logger } from "../../../lib/logger.js";
+import { AutocompleteSlashCommand } from "../../../model/command.js";
 
 export const playCommand = new AutocompleteSlashCommand(
   new SlashCommandBuilder()
