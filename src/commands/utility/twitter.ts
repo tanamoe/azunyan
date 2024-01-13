@@ -16,13 +16,11 @@ import {
   ComponentType,
   ChatInputCommandInteraction,
   InteractionResponse,
-  bold,
   escapeMarkdown,
 } from "discord.js";
 import { SlashCommand } from "../../model/command.js";
 import { Twitter } from "../../lib/twitter.js";
 import { VxTwitterResponse } from "../../types/vxtwitter.js";
-import Tesseract, { createWorker } from "tesseract.js";
 
 export const twitterCommand = new SlashCommand(
   new SlashCommandBuilder()
@@ -38,19 +36,6 @@ export const twitterCommand = new SlashCommand(
       option
         .setName("tweet")
         .setDescription("Gửi Tweet? (mặc định: có)")
-        .setRequired(false),
-    )
-    .addStringOption((option) =>
-      option
-        .setName("ocr")
-        .setDescription("OCR hình ảnh trong tweet? (mặc định: không)")
-        .setChoices(
-          {
-            name: "日本語",
-            value: "jpn",
-          },
-          { name: "English", value: "eng" },
-        )
         .setRequired(false),
     )
     .addBooleanOption((option) =>
@@ -89,7 +74,6 @@ export const twitterCommand = new SlashCommand(
     const url = interaction.options.getString("url", true);
     const sendTweet = interaction.options.getBoolean("tweet", false) ?? true;
     const sendMedia = interaction.options.getBoolean("media", false) ?? true;
-    const ocrLanguage = interaction.options.getString("ocr", false);
     const translateLanguage = interaction.options.getString("translate", false);
     const isSpoiler = interaction.options.getBoolean("spoiler", false) ?? false;
 
@@ -112,27 +96,6 @@ export const twitterCommand = new SlashCommand(
       if (sendTweet) {
         const embed = new EmbedBuilder();
         await embedTweet(embed, data);
-
-        if (translateLanguage) {
-          await translateEmbed(embed, translateLanguage);
-        }
-        embeds.push(embed);
-      }
-
-      if (ocrLanguage && data.media_extended.length > 0) {
-        const embed = new EmbedBuilder();
-        const worker = await createWorker(ocrLanguage);
-        const results = [];
-
-        for (const i in data.media_extended) {
-          const media = data.media_extended[i];
-          if (media.type === "image") {
-            const ret = await worker.recognize(media.url);
-            results.push(ret);
-          }
-        }
-
-        embedOCR(embed, results);
 
         if (translateLanguage) {
           await translateEmbed(embed, translateLanguage);
@@ -230,26 +193,6 @@ async function embedTweet(embed: EmbedBuilder, data: VxTwitterResponse) {
   if (data.text !== "") {
     embed.setDescription(escapeMarkdown(data.text));
   }
-}
-
-function embedOCR(embed: EmbedBuilder, data: Tesseract.RecognizeResult[]) {
-  embed.setColor("#89c4f4");
-  embed.setTitle("Tweet OCR results");
-  embed.setDescription(
-    data
-      .map(
-        (result, i) =>
-          `${bold(`Image ${i + 1}`)}\n${result.data.lines
-            .filter((line) => line.confidence >= 50)
-            .map((line) => escapeMarkdown(line.text))
-            .join("\n")}`,
-      )
-      .join("\n\n"),
-  );
-  embed.setFooter({
-    text: "Tana.moe",
-    iconURL: "https://tana.moe/avatar.jpg",
-  });
 }
 
 async function translateEmbed(embed: EmbedBuilder, translateLanguage: string) {
