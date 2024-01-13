@@ -14,6 +14,7 @@ import {
   ComponentType,
   EmbedBuilder,
   InteractionResponse,
+  SlashCommandBuilder,
   escapeMarkdown,
 } from "discord.js";
 import Tesseract, { createWorker } from "tesseract.js";
