@@ -13,7 +13,7 @@ import { queueCommand } from "./commands/player/queue/command.js";
 import { skipCommand } from "./commands/player/skip.js";
 import { stopCommand } from "./commands/player/stop.js";
 import { pixivCommand } from "./commands/utility/pixiv.js";
-import { twitterCommand } from "./commands/utility/twitter.js";
+import { twitterCommand, xCommand } from "./commands/utility/twitter.js";
 import { logger } from "./lib/logger.js";
 import { register } from "./lib/register.js";
 import {
@@ -33,6 +33,7 @@ const client = new Client({
 
 const commands = [
   twitterCommand,
+  xCommand,
   pixivCommand,
   playCommand,
   queueCommand,
