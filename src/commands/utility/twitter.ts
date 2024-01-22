@@ -17,7 +17,6 @@ import {
   SlashCommandBuilder,
   escapeMarkdown,
 } from "discord.js";
-import Tesseract, { createWorker } from "tesseract.js";
 import { joinURL, parseFilename } from "ufo";
 import { Twitter } from "../../lib/twitter.js";
 import { SlashCommand } from "../../model/command.js";
@@ -28,10 +27,7 @@ export const twitterCommand = new SlashCommand(
     .setName("twitter")
     .setDescription("Azu-nyan sẽ gửi Tweet?!")
     .addStringOption((option) =>
-      option
-        .setName("url")
-        .setDescription("Link Twitter (X)~")
-        .setRequired(true),
+      option.setName("url").setDescription("Link Twitter~").setRequired(true),
     )
     .addBooleanOption((option) =>
       option
@@ -148,6 +144,44 @@ export const twitterCommand = new SlashCommand(
     await collectRemoveRequest(interaction, response, actionRow);
     return null;
   },
+);
+
+export const xCommand = new SlashCommand(
+  new SlashCommandBuilder()
+    .setName("x")
+    .setDescription("Azu-nyan sẽ gửi Tweet?!")
+    .addStringOption((option) =>
+      option.setName("url").setDescription("Link X~").setRequired(true),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("tweet")
+        .setDescription("Gửi Tweet? (mặc định: có)")
+        .setRequired(false),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("media")
+        .setDescription("Gửi hình ảnh? (mặc định: có)")
+        .setRequired(false),
+    )
+    .addStringOption((option) =>
+      option
+        .setName("translate")
+        .setDescription("Dịch Tweet? (mặc định: không)")
+        .setChoices(
+          { name: "English", value: "en" },
+          { name: "Tiếng Việt", value: "vi" },
+        )
+        .setRequired(false),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("spoiler")
+        .setDescription("Đăng ảnh dưới dạng spoiler? (mặc định: không)")
+        .setRequired(false),
+    ),
+  twitterCommand.execute,
 );
 
 async function onError(

@@ -1,7 +1,6 @@
 import {
   AutocompleteInteraction,
   BaseInteraction,
-  BaseSelectMenuComponent,
   ButtonInteraction,
   ChatInputCommandInteraction,
   ContextMenuCommandBuilder,
