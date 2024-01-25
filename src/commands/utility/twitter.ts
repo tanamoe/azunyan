@@ -102,15 +102,23 @@ export const twitterCommand = new SlashCommand(
 
       if (sendMedia && data.mediaURLs.length > 0) {
         for (const media of data.media_extended) {
-          if (media.type === "image")
+          if (
+            (media.type === "gif" || media.type === "video") &&
+            media.duration_millis &&
+            media.duration_millis >= 180_000 // 3 minutes
+          ) {
+            if (isSpoiler) {
+              videoURLs.push(`|| ${media.url} ||`);
+            } else {
+              videoURLs.push(media.url);
+            }
+          } else {
             attachments.push(
               new AttachmentBuilder(media.url, {
                 name: parseFilename(media.url, { strict: true }),
               }).setSpoiler(isSpoiler),
             );
-          else if (media.type === "gif" || media.type === "video")
-            if (isSpoiler) videoURLs.push(`|| ${media.url} ||`);
-            else videoURLs.push(media.url);
+          }
         }
       }
 
