@@ -1,5 +1,6 @@
 import { HTTPError } from "discord.js";
-import { joinURL, parseURL } from "ufo";
+import { ofetch } from "ofetch";
+import { parseURL } from "ufo";
 import { FxTwitterMedia, FxTwitterResponse } from "../types/fxtwitter.js";
 import {
   VxTwitterMediaExtended,
@@ -52,8 +53,10 @@ export class Twitter {
     path: string,
   ): Promise<ExtractorResponse> {
     try {
-      const res = await fetch(joinURL("https://api.vxtwitter.com/", path));
-      const data: VxTwitterResponse = await res.json();
+      const data = await ofetch(path, {
+        baseURL: "https://api.vxtwitter.com/",
+        responseType: "json",
+      });
       return [data, null];
     } catch (e) {
       return Twitter.extractError(e);
@@ -64,8 +67,10 @@ export class Twitter {
     path: string,
   ): Promise<ExtractorResponse> {
     try {
-      const res = await fetch(joinURL("https://api.fxtwitter.com/", path));
-      const data: FxTwitterResponse = await res.json();
+      const data = await ofetch(path, {
+        baseURL: "https://api.fxtwitter.com/",
+        responseType: "json",
+      });
       if (data.code > 500) {
         return [null, new Error(data.message)];
       }
