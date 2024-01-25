@@ -1,6 +1,6 @@
 import { HTTPError } from "discord.js";
-import { parseURL } from "ufo";
 import { ofetch } from "ofetch";
+import { parseURL } from "ufo";
 import { FxTwitterMedia, FxTwitterResponse } from "../types/fxtwitter.js";
 import {
   VxTwitterMediaExtended,
