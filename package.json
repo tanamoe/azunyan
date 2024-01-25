@@ -7,7 +7,7 @@
     "start": "tsc && node --env-file .env dist/index.js",
     "lint": "biome lint .",
     "format": "biome format .",
-    "postinstall": "husky install"
+    "prepare": "husky"
   },
   "author": "catou",
   "license": "ISC",
@@ -40,7 +40,7 @@
     "@commitlint/cli": "^18.0.0",
     "@commitlint/config-conventional": "^18.0.0",
     "@types/node": "^20.9.0",
-    "husky": "^8.0.3",
+    "husky": "^9.0.0",
     "lint-staged": "^15.2.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
