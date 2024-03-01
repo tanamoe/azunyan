@@ -7,6 +7,7 @@ import {
 } from "@discord-player/extractor";
 import { Player } from "discord-player";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
+import { gachaCommand } from "./commands/misc/gacha.js";
 import { playCommand } from "./commands/player/play/command.js";
 import { playContextMenu } from "./commands/player/play/contextMenu.js";
 import { queueCommand } from "./commands/player/queue/command.js";
@@ -21,7 +22,6 @@ import {
   ContextMenuCommand,
   SlashCommand,
 } from "./model/command.js";
-import { gachaCommand } from "./commands/misc/gacha.js";
 
 if (!process.env.DISCORD_TOKEN)
   throw new Error("Discord token is not defined.");

@@ -10,10 +10,10 @@ import {
   EmbedBuilder,
   SlashCommandBuilder,
 } from "discord.js";
-import { SlashCommand } from "../../model/command.js";
-import { CapsuleToyCardResponse } from "../../types/capsuletoy.js";
 import { ofetch } from "ofetch";
 import { logger } from "../../lib/logger.js";
+import { SlashCommand } from "../../model/command.js";
+import { CapsuleToyCardResponse } from "../../types/capsuletoy.js";
 
 export const gachaCommand = new SlashCommand(
   new SlashCommandBuilder()
