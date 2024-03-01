@@ -21,6 +21,7 @@ import {
   ContextMenuCommand,
   SlashCommand,
 } from "./model/command.js";
+import { gachaCommand } from "./commands/misc/gacha.js";
 
 if (!process.env.DISCORD_TOKEN)
   throw new Error("Discord token is not defined.");
@@ -32,6 +33,7 @@ const client = new Client({
 });
 
 const commands = [
+  gachaCommand,
   twitterCommand,
   xCommand,
   pixivCommand,
