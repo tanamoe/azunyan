@@ -7,6 +7,7 @@ import {
 } from "@discord-player/extractor";
 import { Player } from "discord-player";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
+import { gachaCommand } from "./commands/misc/gacha.js";
 import { playCommand } from "./commands/player/play/command.js";
 import { playContextMenu } from "./commands/player/play/contextMenu.js";
 import { queueCommand } from "./commands/player/queue/command.js";
@@ -32,6 +33,7 @@ const client = new Client({
 });
 
 const commands = [
+  gachaCommand,
   twitterCommand,
   xCommand,
   pixivCommand,
