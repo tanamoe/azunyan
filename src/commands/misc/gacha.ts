@@ -43,6 +43,22 @@ export const gachaCommand = new SlashCommand(
             name: "THE iDOLM@STER Shiny Colors",
             value: "shinymas",
           },
+          {
+            name: "THE iDOLM@STER Shiny Colors Song for Prism",
+            value: "shinysong",
+          },
+          {
+            name: "D4DJ Groovy Mix",
+            value: "d4dj",
+          },
+          {
+            name: "Love Live! School Idol Festival 2 MIRACLE LIVE!",
+            value: "sif2",
+          },
+          {
+            name: "Love Live! School Idol Festival All Stars",
+            value: "sifas",
+          },
         )
         .setRequired(false),
     ),
