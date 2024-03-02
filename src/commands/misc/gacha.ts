@@ -59,6 +59,14 @@ export const gachaCommand = new SlashCommand(
             name: "Love Live! School Idol Festival All Stars",
             value: "sifas",
           },
+          {
+            name: "World Dai Star: Yume no Stellarium",
+            value: "wds",
+          },
+          {
+            name: "BanG Dream! Girls Band Party!",
+            value: "bandori",
+          },
         )
         .setRequired(false),
     ),
