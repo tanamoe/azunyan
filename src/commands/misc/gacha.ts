@@ -26,6 +26,23 @@ export const gachaCommand = new SlashCommand(
         .setChoices(
           { name: "IDOLY PRIDE", value: "idoly-pride" },
           { name: "Link! Like! Love Live!", value: "link-like" },
+          { name: "Uma Musume: Pretty Derby", value: "umamusume" },
+          {
+            name: "Project SEKAI: Colorful Stage! feat. Hatsune Miku",
+            value: "project-sekai",
+          },
+          {
+            name: "THE iDOLM@STER Cinderella Girls Starlight Stage",
+            value: "deresute",
+          },
+          {
+            name: "THE iDOLM@STER Million Live! Theater Days",
+            value: "mirishita",
+          },
+          {
+            name: "THE iDOLM@STER Shiny Colors",
+            value: "shinymas",
+          },
         )
         .setRequired(false),
     ),
@@ -50,7 +67,6 @@ export const gachaCommand = new SlashCommand(
 
       embed.setAuthor({
         name: interaction.user.displayName,
-        iconURL: interaction.user.defaultAvatarURL,
       });
       embed.setColor("#89c4f4");
       embed.setTitle(res.cards.name);
@@ -61,17 +77,25 @@ export const gachaCommand = new SlashCommand(
           value: res.characters.name,
           inline: true,
         },
-        {
-          name: "Rarity",
-          value: res.cards.rarity,
-          inline: true,
-        },
       ]);
+      if (res.cards.rarity) {
+        embed.addFields([
+          {
+            name: "Rarity",
+            value: res.cards.rarity,
+            inline: true,
+          },
+        ]);
+      }
       embed.setFooter({
         text: res.games.name,
         iconURL: res.games.logoUrl,
       });
+      embed.setTimestamp();
       embed.setImage(res.cards.imageUrl);
+      if (res.cards.thumbnailUrl) {
+        embed.setThumbnail(res.cards.thumbnailUrl);
+      }
 
       embeds.push(embed);
 

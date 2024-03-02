@@ -7,6 +7,7 @@ export interface CapsuleToyCardResponse {
     rarity: string;
     path: string;
     imageUrl: string;
+    thumbnailUrl?: string;
   };
   characters: {
     id: string;
