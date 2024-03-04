@@ -67,11 +67,15 @@ export const gachaCommand = new SlashCommand(
             name: "BanG Dream! Girls Band Party!",
             value: "bandori",
           },
+          {
+            name: "Weiß Schwarz",
+            value: "weissschwarz",
+          },
         )
         .setRequired(false),
     ),
   async (interaction) => {
-    const response = await interaction.reply("Đang quay ra...!");
+    const response = await interaction.deferReply();
 
     // create objects
     const embeds = [];
@@ -124,7 +128,6 @@ export const gachaCommand = new SlashCommand(
       embeds.push(embed);
 
       interaction.editReply({
-        content: "",
         embeds,
       });
     } catch (e) {
