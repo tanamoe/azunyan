@@ -14,7 +14,7 @@
   "type": "module",
   "lint-staged": {
     "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-      "biome check --apply --organize-imports-enabled=false --no-errors-on-unmatched"
+      "biome check --apply --organize-imports-enabled=true --no-errors-on-unmatched"
     ]
   },
   "engines": {
