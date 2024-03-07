@@ -71,6 +71,10 @@ export const gachaCommand = new SlashCommand(
             name: "Weiß Schwarz",
             value: "weissschwarz",
           },
+          {
+            name: "ONGEKI",
+            value: "ongeki",
+          },
         )
         .setRequired(false),
     ),
