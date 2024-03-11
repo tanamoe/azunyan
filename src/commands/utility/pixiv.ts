@@ -72,27 +72,29 @@ export const pixivCommand = new SlashCommand(
     }
 
     try {
-      const res = await ofetch("https://www.phixiv.net/api/info", {
-        query: {
-          id,
+      const res = await ofetch<PhixivResponse>(
+        "https://www.phixiv.net/api/info",
+        {
+          query: {
+            id,
+          },
         },
-      });
-      const data: PhixivResponse = await res.json();
+      );
 
       if (sendDetails) {
         const embed = new EmbedBuilder();
 
         embed.setAuthor({
-          name: `${data.author_name}`,
-          url: joinURL("https://www.pixiv.net/users/", data.author_id),
+          name: `${res.author_name}`,
+          url: joinURL("https://www.pixiv.net/users/", res.author_id),
         });
         embed.setColor("#0096FA");
-        embed.setTitle(data.title);
-        embed.setURL(data.url);
+        embed.setTitle(res.title);
+        embed.setURL(res.url);
         embed.addFields([
           {
             name: "Tags",
-            value: data.tags
+            value: res.tags
               .map(
                 (tag) =>
                   `[${tag}](${normalizeURL(
@@ -112,14 +114,14 @@ export const pixivCommand = new SlashCommand(
             "https://s.pximg.net/common/images/apple-touch-icon.png?20200601",
         });
 
-        if (data.description)
-          embed.setDescription(parseHTMLtoMarkdown(data.description));
+        if (res.description)
+          embed.setDescription(parseHTMLtoMarkdown(res.description));
 
         embeds.push(embed);
       }
 
       if (sendAll) {
-        for (const image of data.image_proxy_urls.slice(0, 10)) {
+        for (const image of res.image_proxy_urls.slice(0, 10)) {
           attachments.push(
             new AttachmentBuilder(image, {
               name: parseFilename(image, { strict: true }),
@@ -128,8 +130,8 @@ export const pixivCommand = new SlashCommand(
         }
       } else {
         attachments.push(
-          new AttachmentBuilder(data.image_proxy_urls[0], {
-            name: parseFilename(data.image_proxy_urls[0], { strict: true }),
+          new AttachmentBuilder(res.image_proxy_urls[0], {
+            name: parseFilename(res.image_proxy_urls[0], { strict: true }),
           }).setSpoiler(isSpoiler),
         );
       }
@@ -138,7 +140,7 @@ export const pixivCommand = new SlashCommand(
         new ButtonBuilder()
           .setLabel("Nguồn")
           .setStyle(ButtonStyle.Link)
-          .setURL(data.url),
+          .setURL(res.url),
         new ButtonBuilder()
           .setCustomId("remove")
           .setLabel("Xóa")
@@ -147,7 +149,7 @@ export const pixivCommand = new SlashCommand(
       );
 
       await interaction.editReply({
-        content: data.ai_generated
+        content: res.ai_generated
           ? "## <:kanna_investigate:1095204804483096586> AI generated content"
           : undefined,
         files: attachments,
