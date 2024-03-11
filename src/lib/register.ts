@@ -2,8 +2,8 @@ import { REST, Routes } from "discord.js";
 import { logger } from "../lib/logger.js";
 import {
   ButtonCommand,
-  ContextMenuCommand,
-  SlashCommand,
+  type ContextMenuCommand,
+  type SlashCommand,
 } from "../model/command.js";
 
 export const register = async (

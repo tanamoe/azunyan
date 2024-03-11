@@ -1,12 +1,12 @@
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
-  CacheType,
-  Collection,
-  CollectorFilter,
-  ComponentType,
+  type CacheType,
+  type Collection,
+  type CollectorFilter,
+  type ComponentType,
   EmbedBuilder,
   SlashCommandBuilder,
   hyperlink,
@@ -14,9 +14,9 @@ import {
 import { ofetch } from "ofetch";
 import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
-import { ACBExchangeRate } from "../../types/acb.js";
-import { TCBExchangeRate } from "../../types/tcb.js";
-import { VCBExchangeRate } from "../../types/vcb.js";
+import type { ACBExchangeRate } from "../../types/acb.js";
+import type { TCBExchangeRate } from "../../types/tcb.js";
+import type { VCBExchangeRate } from "../../types/vcb.js";
 
 export const jpyCommand = new SlashCommand(
   new SlashCommandBuilder()

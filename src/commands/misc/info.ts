@@ -1,12 +1,12 @@
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
-  CacheType,
-  Collection,
-  CollectorFilter,
-  ComponentType,
+  type CacheType,
+  type Collection,
+  type CollectorFilter,
+  type ComponentType,
   EmbedBuilder,
   SlashCommandBuilder,
   bold,
@@ -14,7 +14,7 @@ import {
 import { ofetch } from "ofetch";
 import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
-import { CapsuleToyCardStats } from "../../types/capsuletoy.js";
+import type { CapsuleToyCardStats } from "../../types/capsuletoy.js";
 
 export const infoCommand = new SlashCommand(
   new SlashCommandBuilder()

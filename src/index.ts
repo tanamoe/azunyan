@@ -19,7 +19,7 @@ import { pixivCommand } from "./commands/utility/pixiv.js";
 import { twitterCommand, xCommand } from "./commands/utility/twitter.js";
 import { logger } from "./lib/logger.js";
 import { register } from "./lib/register.js";
-import {
+import type {
   AutocompleteSlashCommand,
   ContextMenuCommand,
   SlashCommand,

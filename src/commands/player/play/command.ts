@@ -1,7 +1,7 @@
 import { QueryType, useMainPlayer } from "discord-player";
 import {
   EmbedBuilder,
-  GuildMember,
+  type GuildMember,
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "discord.js";
