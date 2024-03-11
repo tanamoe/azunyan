@@ -5,22 +5,22 @@ import {
   ActionRowBuilder,
   AttachmentBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
-  CacheType,
-  ChatInputCommandInteraction,
-  Collection,
-  CollectorFilter,
-  ComponentType,
+  type CacheType,
+  type ChatInputCommandInteraction,
+  type Collection,
+  type CollectorFilter,
+  type ComponentType,
   EmbedBuilder,
-  InteractionResponse,
+  type InteractionResponse,
   SlashCommandBuilder,
   escapeMarkdown,
 } from "discord.js";
 import { joinURL, parseFilename } from "ufo";
 import { Twitter } from "../../lib/twitter.js";
 import { SlashCommand } from "../../model/command.js";
-import { VxTwitterResponse } from "../../types/vxtwitter.js";
+import type { VxTwitterResponse } from "../../types/vxtwitter.js";
 
 export const twitterCommand = new SlashCommand(
   new SlashCommandBuilder()

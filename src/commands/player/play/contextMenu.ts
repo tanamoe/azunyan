@@ -3,7 +3,7 @@ import {
   ApplicationCommandType,
   ContextMenuCommandBuilder,
   EmbedBuilder,
-  GuildMember,
+  type GuildMember,
 } from "discord.js";
 import { logger } from "../../../lib/logger.js";
 import { ContextMenuCommand } from "../../../model/command.js";

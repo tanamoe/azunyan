@@ -1,19 +1,19 @@
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
-  CacheType,
-  Collection,
-  CollectorFilter,
-  ComponentType,
+  type CacheType,
+  type Collection,
+  type CollectorFilter,
+  type ComponentType,
   EmbedBuilder,
   SlashCommandBuilder,
 } from "discord.js";
 import { ofetch } from "ofetch";
 import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
-import { CapsuleToyCardResponse } from "../../types/capsuletoy.js";
+import type { CapsuleToyCardResponse } from "../../types/capsuletoy.js";
 
 export const gachaCommand = new SlashCommand(
   new SlashCommandBuilder()

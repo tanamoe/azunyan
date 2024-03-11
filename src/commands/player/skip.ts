@@ -32,7 +32,9 @@ export const skipCommand = new SlashCommand(
 
     if (range?.match(/^(\d+)-(\d+)$/)) {
       try {
-        const [from, to] = range.split("-").map((value) => parseInt(value) - 1);
+        const [from, to] = range
+          .split("-")
+          .map((value) => Number.parseInt(value) - 1);
 
         if (from < 0 || to > queue.tracks.size - 1) {
           await interaction.editReply("Vị trí không hợp lệ TTwTT");
@@ -56,7 +58,7 @@ export const skipCommand = new SlashCommand(
 
     if (range?.match(/^(\d+)$/)) {
       try {
-        const position = parseInt(range) - 1;
+        const position = Number.parseInt(range) - 1;
 
         if (position < 1 || position > queue.tracks.size - 1) {
           await interaction.editReply("Vị trí không hợp lệ TTwTT");
@@ -79,7 +81,7 @@ export const skipCommand = new SlashCommand(
       try {
         const positions = range
           .split(",")
-          .map((value) => parseInt(value) - 1)
+          .map((value) => Number.parseInt(value) - 1)
           .sort((a, b) => b - a)
           .filter((value) => !(value < 1 || value > queue.tracks.size - 1));
 

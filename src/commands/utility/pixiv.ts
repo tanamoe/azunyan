@@ -2,15 +2,16 @@ import {
   ActionRowBuilder,
   AttachmentBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
-  CacheType,
-  Collection,
-  CollectorFilter,
-  ComponentType,
+  type CacheType,
+  type Collection,
+  type CollectorFilter,
+  type ComponentType,
   EmbedBuilder,
   SlashCommandBuilder,
 } from "discord.js";
+import { ofetch } from "ofetch";
 import { joinURL, normalizeURL, parseFilename, parseURL } from "ufo";
 import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
@@ -71,7 +72,11 @@ export const pixivCommand = new SlashCommand(
     }
 
     try {
-      const res = await fetch(`https://www.phixiv.net/api/info?id=${id}`);
+      const res = await ofetch("https://www.phixiv.net/api/info", {
+        query: {
+          id,
+        },
+      });
       const data: PhixivResponse = await res.json();
 
       if (sendDetails) {
