@@ -46,7 +46,7 @@
     "typescript": "^5.4.2"
   },
   "volta": {
-    "node": "20.11.0"
+    "node": "20.12.2"
   },
   "trustedDependencies": ["@discordjs/opus", "mediaplex"]
 }
