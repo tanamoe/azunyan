@@ -5,6 +5,8 @@ import {
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "discord.js";
+import { video_basic_info } from "play-dl";
+import { parseQuery, parseURL, stringifyParsedURL, stringifyQuery } from "ufo";
 import { logger } from "../../../lib/logger.js";
 import { AutocompleteSlashCommand } from "../../../model/command.js";
 
@@ -15,7 +17,7 @@ export const playCommand = new AutocompleteSlashCommand(
     .addStringOption(
       new SlashCommandStringOption()
         .setName("query")
-        .setDescription("Tên để tỉm~")
+        .setDescription("Tên để tìm~")
         .setRequired(true)
         .setAutocomplete(true),
     ),
@@ -25,7 +27,7 @@ export const playCommand = new AutocompleteSlashCommand(
     }
 
     const member = interaction.member as GuildMember;
-    const query = interaction.options.getString("query", true);
+    let query = interaction.options.getString("query", true);
 
     // default to defer the reply
     await interaction.deferReply();
@@ -50,6 +52,16 @@ export const playCommand = new AutocompleteSlashCommand(
     }
 
     try {
+      // attempt to parse YouTube URL (if present)
+      const _url = parseURL(query);
+
+      if (_url.host?.includes("youtube.com")) {
+        // remove everything except video query (?v={id})
+        const _query = parseQuery(_url.search);
+        _url.search = stringifyQuery({ v: _query.v });
+        query = stringifyParsedURL(_url);
+      }
+
       const search = await player.search(query);
 
       if (!search.hasTracks()) {
@@ -85,6 +97,14 @@ export const playCommand = new AutocompleteSlashCommand(
           },
         ]);
       } else {
+        try {
+          await video_basic_info(search.tracks[0].url);
+        } catch (e: unknown) {
+          if (e instanceof Error) await interaction.editReply(e.message);
+          else logger.error(e);
+          return null;
+        }
+
         const { track } = await player.play(channel, search);
 
         if (track.author && track.author !== "")
