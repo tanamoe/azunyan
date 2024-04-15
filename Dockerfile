@@ -3,15 +3,13 @@ FROM oven/bun as build
 RUN apt update
 RUN apt install -y python3 build-essential git
 
-# build
-RUN bun run build
-
 # copy dirs
 COPY . /app
 WORKDIR /app
 
 # install the dependencies
 RUN bun install --frozen-lockfile
+RUN bun run build
 
 FROM node:20.12.2 as image
 
