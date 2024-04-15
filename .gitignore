@@ -708,3 +708,4 @@ FodyWeavers.xsd
 # Project release and test folder
 build/
 music/
+app.js
