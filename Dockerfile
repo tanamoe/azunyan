@@ -10,7 +10,7 @@ WORKDIR /app
 # install the dependencies
 RUN bun install --frozen-lockfile
 
-FROM node:20.11.0 as image
+FROM node:20.12.2 as image
 
 # deps: install runtime dependencies
 RUN apt update

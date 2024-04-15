@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --target=node20.6.0 --format=esm --packages=external --outfile=build/app.js",
-    "start": "node --env-file .env build/app.js",
+    "start": "node --env-file .env app.js",
     "lint": "biome lint --apply .",
     "format": "biome format --write .",
     "prepare": "husky"
