@@ -3,6 +3,9 @@ FROM oven/bun as build
 RUN apt update
 RUN apt install -y python3 build-essential git
 
+# build
+RUN bun run build
+
 # copy dirs
 COPY . /app
 WORKDIR /app
