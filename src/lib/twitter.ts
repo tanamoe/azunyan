@@ -1,7 +1,7 @@
 import { HTTPError } from "discord.js";
 import { ofetch } from "ofetch";
 import { parseURL } from "ufo";
-import { type FxTwitterMedia, FxTwitterResponse } from "../types/fxtwitter.js";
+import type { FxTwitterMedia, FxTwitterResponse } from "../types/fxtwitter.js";
 import type {
   VxTwitterMediaExtended,
   VxTwitterResponse,
@@ -13,11 +13,7 @@ export type ExtractorResponse =
 type ExtractorFn = (path: string) => Promise<ExtractorResponse>;
 
 export class Twitter {
-  private lintComplain() {
-    return 0;
-  }
-
-  static normalizeUrl(path: string): [string, null] | ["", Error] {
+  normalizeUrl(path: string): [string, null] | ["", Error] {
     const url = parseURL(path);
     const supportedHosts: ReadonlyArray<string> = [
       "twitter.com",
@@ -33,7 +29,7 @@ export class Twitter {
     return [url.pathname, null];
   }
 
-  public static async extractTweet(path: string): Promise<ExtractorResponse> {
+  public async extractTweet(path: string): Promise<ExtractorResponse> {
     const extractors: ReadonlyArray<ExtractorFn> = [
       Twitter.extractTweetViaFxTwitter,
       Twitter.extractTweetViaVxTwitter,
@@ -67,7 +63,7 @@ export class Twitter {
     path: string,
   ): Promise<ExtractorResponse> {
     try {
-      const data = await ofetch(path, {
+      const data = await ofetch<FxTwitterResponse>(path, {
         baseURL: "https://api.fxtwitter.com/",
         responseType: "json",
       });
