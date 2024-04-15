@@ -15,6 +15,7 @@ import { playContextMenu } from "./commands/player/play/contextMenu.js";
 import { queueCommand } from "./commands/player/queue/command.js";
 import { skipCommand } from "./commands/player/skip.js";
 import { stopCommand } from "./commands/player/stop.js";
+import { artworkCommand } from "./commands/utility/artwork.js";
 import { pixivCommand } from "./commands/utility/pixiv.js";
 import { twitterCommand, xCommand } from "./commands/utility/twitter.js";
 import { logger } from "./lib/logger.js";
@@ -38,6 +39,7 @@ const commands = [
   gachaCommand,
   infoCommand,
   jpyCommand,
+  artworkCommand,
   twitterCommand,
   xCommand,
   pixivCommand,
