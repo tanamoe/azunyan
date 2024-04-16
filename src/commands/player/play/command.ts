@@ -52,10 +52,13 @@ export const playCommand = new AutocompleteSlashCommand(
     }
 
     try {
-      // attempt to parse YouTube URL (if present)
+      // attempt to parse YouTube watch URL (if present)
       const _url = parseURL(query);
 
-      if (_url.host?.includes("youtube.com")) {
+      if (
+        _url.host?.includes("youtube.com") &&
+        _url.pathname.includes("/watch")
+      ) {
         // remove everything except video query (?v={id})
         const _query = parseQuery(_url.search);
         _url.search = stringifyQuery({ v: _query.v });
