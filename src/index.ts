@@ -7,6 +7,7 @@ import {
 } from "@discord-player/extractor";
 import { Player } from "discord-player";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
+import { decideCommand, tuyanhemCommand } from "./commands/misc/decide.js";
 import { gachaCommand } from "./commands/misc/gacha.js";
 import { infoCommand } from "./commands/misc/info.js";
 import { jpyCommand } from "./commands/misc/jpy.js";
@@ -39,6 +40,8 @@ const commands = [
   gachaCommand,
   infoCommand,
   jpyCommand,
+  decideCommand,
+  tuyanhemCommand,
   artworkCommand,
   twitterCommand,
   xCommand,
