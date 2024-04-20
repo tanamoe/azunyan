@@ -63,6 +63,15 @@ export const playCommand = new AutocompleteSlashCommand(
         const _query = parseQuery(_url.search);
         _url.search = stringifyQuery({ v: _query.v });
         query = stringifyParsedURL(_url);
+
+        // check Premium song
+        try {
+          await video_basic_info(query);
+        } catch (e: unknown) {
+          if (e instanceof Error) await interaction.editReply(e.message);
+          else logger.error(e);
+          return null;
+        }
       }
 
       const search = await player.search(query);
@@ -100,14 +109,6 @@ export const playCommand = new AutocompleteSlashCommand(
           },
         ]);
       } else {
-        try {
-          await video_basic_info(search.tracks[0].url);
-        } catch (e: unknown) {
-          if (e instanceof Error) await interaction.editReply(e.message);
-          else logger.error(e);
-          return null;
-        }
-
         const { track } = await player.play(channel, search);
 
         if (track.author && track.author !== "")
