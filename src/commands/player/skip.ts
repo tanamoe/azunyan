@@ -1,5 +1,5 @@
 import { useQueue } from "discord-player";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, hideLinkEmbed, hyperlink } from "discord.js";
 import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
 
@@ -28,7 +28,7 @@ export const skipCommand = new SlashCommand(
       return new Error("Empty queue");
     }
 
-    const range = interaction.options.getString("range");
+    const range = interaction.options.getString("range")?.replace(/ /g, "");
 
     if (range?.match(/^(\d+)-(\d+)$/)) {
       try {
@@ -41,11 +41,19 @@ export const skipCommand = new SlashCommand(
           return null;
         }
 
+        const removed = queue.tracks
+          .toArray()
+          .splice(from, to - from + 1)
+          .map(
+            (track, i) =>
+              `${i + 1}. ${hyperlink(track.title, hideLinkEmbed(track.url))}`,
+          );
+
         for (let i = to; i >= from; i--) {
           queue.removeTrack(i);
         }
 
-        await interaction.editReply(`Đã cho qua bài ${range} <3~`);
+        await interaction.editReply(`Đã cho qua:\n${removed.join("\n")}`);
 
         return null;
       } catch (error) {
@@ -60,14 +68,26 @@ export const skipCommand = new SlashCommand(
       try {
         const position = Number.parseInt(range) - 1;
 
-        if (position < 1 || position > queue.tracks.size - 1) {
+        if (position < 0 || position > queue.tracks.size - 1) {
           await interaction.editReply("Vị trí không hợp lệ TTwTT");
+          return null;
+        }
+
+        const removed = queue.tracks.at(position);
+
+        if (!removed) {
+          await interaction.editReply("Không tìm thấy");
           return null;
         }
 
         queue.removeTrack(position);
 
-        await interaction.editReply(`Đã cho qua bài ${range} <3~`);
+        await interaction.editReply(
+          `Đã cho qua bài ${hyperlink(
+            removed.title,
+            hideLinkEmbed(removed.url),
+          )} <3~`,
+        );
         return null;
       } catch (error) {
         logger.error(error);
@@ -83,15 +103,25 @@ export const skipCommand = new SlashCommand(
           .split(",")
           .map((value) => Number.parseInt(value) - 1)
           .sort((a, b) => b - a)
-          .filter((value) => !(value < 1 || value > queue.tracks.size - 1));
+          .filter((value) => !(value < 0 || value > queue.tracks.size - 1));
+
+        const removed = positions
+          .map((position) => {
+            const track = queue.tracks.at(position);
+            if (track)
+              return `${position + 1}. ${hyperlink(
+                track.title,
+                hideLinkEmbed(track.url),
+              )}`;
+          })
+          .reverse();
 
         for (const position of positions) {
           queue.removeTrack(position);
         }
 
-        await interaction.editReply(
-          `Đã cho qua bài ${positions.reverse().join(", ")} <3~`,
-        );
+        await interaction.editReply(`Đã cho qua:\n${removed.join("\n")}`);
+
         return null;
       } catch (error) {
         logger.error(error);
@@ -101,9 +131,21 @@ export const skipCommand = new SlashCommand(
       }
     }
 
+    const removed = queue.currentTrack;
+
+    if (!removed) {
+      await interaction.editReply("Không tìm thấy");
+      return null;
+    }
+
     queue.node.skip();
 
-    await interaction.editReply("Đã cho qua <3~");
+    await interaction.editReply(
+      `Đã cho qua bài ${hyperlink(
+        removed.title,
+        hideLinkEmbed(removed.url),
+      )} <3~`,
+    );
     return null;
   },
 );
