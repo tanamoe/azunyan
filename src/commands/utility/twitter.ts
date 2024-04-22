@@ -1,13 +1,13 @@
 import { logger } from "../../lib/logger.js";
 
 import translate from "@iamtraction/google-translate";
-import { ButtonStyle } from "discord-api-types/v10";
 import {
   ActionRowBuilder,
   AttachmentBuilder,
   type ButtonBuilder,
   ButtonComponentData,
   type ButtonInteraction,
+  type ButtonStyle,
   type CacheType,
   type ChatInputCommandInteraction,
   type Collection,
