@@ -12,7 +12,6 @@ import {
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "discord.js";
-import { parseFilename } from "ufo";
 import { iTunes } from "../../lib/artwork.js";
 import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
@@ -20,25 +19,53 @@ import { SlashCommand } from "../../model/command.js";
 export const artworkCommand = new SlashCommand(
   new SlashCommandBuilder()
     .setName("artwork")
-    .setDescription(
-      "Azu-nyan sẽ gửi artwork cùng một tí thông tin của album nhạc!",
-    )
+    .setDescription("Tìm artwork cùng một tí thông tin của album nhạc!")
+    .setDescriptionLocalizations({
+      vi: "Tìm artwork cùng một tí thông tin của album nhạc!",
+      "en-US": "Find album artwork with a little bit information!",
+    })
     .addStringOption(
       new SlashCommandStringOption()
         .setName("query")
         .setDescription("Tên để tìm~")
+        .setDescriptionLocalizations({
+          vi: "Tên để tìm~",
+          "en-US": "Search query~",
+        })
         .setRequired(true),
     )
     .addStringOption(
       new SlashCommandStringOption()
         .setName("language")
         .setDescription("Ngôn ngữ hiển thị (mặc định: ja_JP)")
+        .setDescriptionLocalizations({
+          vi: "Ngôn ngữ hiển thị (mặc định: ja_JP)",
+          "en-US": "Displayed language (default: ja_JP)",
+        })
         .setChoices(
           {
             name: "English",
             value: "en_US",
           },
           { name: "日本語", value: "ja_JP" },
+        )
+        .setRequired(false),
+    )
+    .addStringOption(
+      new SlashCommandStringOption()
+        .setName("country")
+        .setDescription("Quốc gia tìm kiếm (mặc định: JP)")
+        .setDescriptionLocalizations({
+          vi: "Quốc gia tìm kiếm (mặc định: JP)",
+          "en-US": "Country (default: JP)",
+        })
+        .setChoices(
+          {
+            name: "Việt Nam",
+            value: "VN",
+          },
+          { name: "日本", value: "JP" },
+          { name: "New Zealand", value: "NZ" },
         )
         .setRequired(false),
     ),
@@ -54,13 +81,11 @@ export const artworkCommand = new SlashCommand(
 
     // assigning query
     const query = interaction.options.getString("query", true);
-    const lang =
-      interaction.options.getString("language", false) === "en_US"
-        ? "en_US"
-        : "ja_JP";
+    const lang = interaction.options.getString("language", false) ?? "ja_JP";
+    const country = interaction.options.getString("country", false) ?? "JP";
 
     try {
-      const [result, error] = await itunes.search(query, lang, 1);
+      const [result, error] = await itunes.search(query, 1, lang, country);
 
       if (error !== null) {
         throw error;
@@ -83,12 +108,6 @@ export const artworkCommand = new SlashCommand(
       embed.setFooter({
         text: "Apple Music",
         iconURL: "https://music.apple.com/assets/favicon/favicon-180.png",
-      });
-      embed.addFields({
-        name: "Catalog No.",
-        value:
-          parseFilename(result.artworkUrl, { strict: true })?.split(".")[0] ??
-          "N/A",
       });
       embeds.push(embed);
 

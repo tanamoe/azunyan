@@ -2,8 +2,6 @@ import { ofetch } from "ofetch";
 import { parseURL } from "ufo";
 import type { iTunesSearchResponse } from "../types/itunes.js";
 
-type SearchLanguage = "en_US" | "ja_JP";
-
 type Artwork = {
   name: string;
   artist: string;
@@ -19,14 +17,15 @@ export type ArtworkResponse = [Artwork | null, null] | [null, Error];
 export class iTunes {
   public async lookup(
     id: string,
-    lang: SearchLanguage,
+    lang?: string,
+    country?: string,
   ): Promise<ArtworkResponse> {
     const data = await ofetch<iTunesSearchResponse>(
       "https://itunes.apple.com/lookup",
       {
         query: {
           id,
-          country: "JP",
+          country,
           lang,
           entity: "album",
         },
@@ -54,8 +53,9 @@ export class iTunes {
 
   public async search(
     term: string,
-    lang: SearchLanguage,
-    limit: number,
+    limit?: number,
+    lang?: string,
+    country?: string,
   ): Promise<ArtworkResponse> {
     const _url = parseURL(term);
 
@@ -72,7 +72,7 @@ export class iTunes {
       {
         query: {
           term,
-          country: "JP",
+          country,
           media: "music",
           lang,
           entity: "album",
