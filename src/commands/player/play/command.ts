@@ -166,14 +166,27 @@ export const playCommand = new AutocompleteSlashCommand(
       value: string;
     }[] = [];
 
-    search.tracks.slice(0, 10).map((result) =>
+    search.tracks.slice(0, 10).map((result) => {
+      const author =
+        result.author.length > 20
+          ? `${result.author.substring(0, 19)}…`
+          : result.author;
+      const title =
+        result.title.length > 40
+          ? `${result.title.substring(0, 39)}…`
+          : result.title;
+      const metadata = result.metadata as Child;
+      const album =
+        metadata.album && metadata.album.length > 30
+          ? `${metadata.album.substring(0, 39)}…`
+          : metadata.album;
+
       results.push({
-        name: `${result.author.substring(0, 20)} - ${result.title} 【${
-          (result.metadata as Child)?.album
-        }】`,
+        // this cant be more than 100 characters
+        name: `${author} - ${title}【${album}】`,
         value: result.url,
-      }),
-    );
+      });
+    });
 
     await interaction.respond(results);
 
