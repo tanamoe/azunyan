@@ -1,4 +1,4 @@
-import { useQueue } from "discord-player";
+import { QueueRepeatMode, useQueue } from "discord-player";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -46,8 +46,28 @@ export const queueCommand = new SlashCommand(
     embed.setDescription(`[${currentTrack.title}](${currentTrack.url})`);
     embed.setThumbnail(currentTrack.thumbnail);
 
+    embed.addFields(
+      {
+        name: "Shuffle",
+        value: queue.isShuffling ? "🔀 Bật" : "Tắt",
+        inline: true,
+      },
+      {
+        name: "Repeat",
+        value:
+          queue.repeatMode === QueueRepeatMode.AUTOPLAY
+            ? "⏩ Autoplay"
+            : queue.repeatMode === QueueRepeatMode.QUEUE
+              ? "🔁 Queue"
+              : queue.repeatMode === QueueRepeatMode.TRACK
+                ? "🔂 Track"
+                : "Tắt",
+        inline: true,
+      },
+    );
+
     if (tracks.length > 0) {
-      embed.setFields(
+      embed.addFields(
         {
           name: "Sắp tới",
           value: tracks
