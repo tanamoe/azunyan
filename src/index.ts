@@ -14,11 +14,14 @@ import { jpyCommand } from "./commands/misc/jpy.js";
 import { playCommand } from "./commands/player/play/command.js";
 import { playContextMenu } from "./commands/player/play/contextMenu.js";
 import { queueCommand } from "./commands/player/queue/command.js";
+import { repeatCommand } from "./commands/player/repeat.js";
+import { shuffleCommand } from "./commands/player/shuffle.js";
 import { skipCommand } from "./commands/player/skip.js";
 import { stopCommand } from "./commands/player/stop.js";
 import { artworkCommand } from "./commands/utility/artwork.js";
 import { pixivCommand } from "./commands/utility/pixiv.js";
 import { twitterCommand, xCommand } from "./commands/utility/twitter.js";
+import { NavidromeExtractor } from "./extractor/navidrome.js";
 import { logger } from "./lib/logger.js";
 import { register } from "./lib/register.js";
 import type {
@@ -27,8 +30,9 @@ import type {
   SlashCommand,
 } from "./model/command.js";
 
-if (!process.env.DISCORD_TOKEN)
+if (!process.env.DISCORD_TOKEN) {
   throw new Error("Discord token is not defined.");
+}
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 
@@ -37,17 +41,22 @@ const client = new Client({
 });
 
 const commands = [
+  // misc
   gachaCommand,
   infoCommand,
   jpyCommand,
   decideCommand,
   tuyanhemCommand,
+  // utility
   artworkCommand,
   twitterCommand,
   xCommand,
   pixivCommand,
+  // playback-related
   playCommand,
   queueCommand,
+  shuffleCommand,
+  repeatCommand,
   skipCommand,
   stopCommand,
   playContextMenu,
@@ -57,9 +66,9 @@ await register(commands);
 
 // Handle interactions
 client.on(Events.InteractionCreate, async (interaction) => {
-  if (interaction.isCommand()) {
+  if (interaction.isChatInputCommand()) {
     const command = commands.find(
-      (command) => command.data?.name === interaction.commandName,
+      (command) => command.data.name === interaction.commandName,
     );
 
     if (!command) {
@@ -68,12 +77,45 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     try {
-      if (interaction.isAutocomplete())
-        await (command as AutocompleteSlashCommand).autocomplete(interaction);
-      else if (interaction.isChatInputCommand())
-        await (command as SlashCommand).execute(interaction);
-      else if (interaction.isMessageContextMenuCommand())
-        await (command as ContextMenuCommand).execute(interaction);
+      await (command as SlashCommand).execute(interaction);
+    } catch (e) {
+      logger.error(e);
+    }
+
+    return;
+  }
+
+  if (interaction.isAutocomplete()) {
+    const command = commands.find(
+      (command) => command.data.name === interaction.commandName,
+    );
+
+    if (!command) {
+      logger.error(`Không tìm thấy lệnh ${interaction.commandName} nyaaaaa~`);
+      return;
+    }
+
+    try {
+      await (command as AutocompleteSlashCommand).autocomplete(interaction);
+    } catch (e) {
+      logger.error(e);
+    }
+
+    return;
+  }
+
+  if (interaction.isMessageContextMenuCommand()) {
+    const command = commands.find(
+      (command) => command.data.name === interaction.commandName,
+    );
+
+    if (!command) {
+      logger.error(`Không tìm thấy lệnh ${interaction.commandName} nyaaaaa~`);
+      return;
+    }
+
+    try {
+      await (command as ContextMenuCommand).execute(interaction);
     } catch (e) {
       logger.error(e);
     }
@@ -85,6 +127,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
 // Create the player client
 const player = new Player(client);
 
+if (
+  process.env.NAVIDROME_URL &&
+  process.env.NAVIDROME_USERNAME &&
+  process.env.NAVIDROME_PASSWORD
+) {
+  player.extractors.register(NavidromeExtractor, {
+    url: process.env.NAVIDROME_URL,
+    username: process.env.NAVIDROME_USERNAME,
+    password: process.env.NAVIDROME_PASSWORD,
+  });
+}
 player.extractors.register(YouTubeExtractor, {});
 player.extractors.register(SpotifyExtractor, {});
 player.extractors.register(AttachmentExtractor, {});
