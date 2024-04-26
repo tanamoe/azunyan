@@ -25,7 +25,7 @@ export const skipCommand = new SlashCommand(
 
     if (!queue) {
       await interaction.editReply("Hình như nhạc đang không chơi..?~");
-      return new Error("Empty queue");
+      return null;
     }
 
     const range = interaction.options.getString("range")?.replace(/ /g, "");
