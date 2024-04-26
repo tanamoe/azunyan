@@ -166,7 +166,7 @@ export const playCommand = new AutocompleteSlashCommand(
       value: string;
     }[] = [];
 
-    search.tracks.slice(0, 10).map((result) => {
+    search.tracks.slice(0, 25).map((result) => {
       const author =
         result.author.length > 20
           ? `${result.author.substring(0, 19)}…`
