@@ -1,4 +1,4 @@
-import { QueryType, useMainPlayer } from "discord-player";
+import { useMainPlayer } from "discord-player";
 import {
   EmbedBuilder,
   type GuildMember,
@@ -6,7 +6,9 @@ import {
   SlashCommandStringOption,
 } from "discord.js";
 import { video_basic_info } from "play-dl";
+import type { Child } from "subsonic-api";
 import { parseQuery, parseURL, stringifyParsedURL, stringifyQuery } from "ufo";
+import { NavidromeExtractor } from "../../../extractor/navidrome.js";
 import { logger } from "../../../lib/logger.js";
 import { AutocompleteSlashCommand } from "../../../model/command.js";
 
@@ -22,7 +24,7 @@ export const playCommand = new AutocompleteSlashCommand(
         .setAutocomplete(true),
     ),
   async (interaction) => {
-    if (!interaction.member) {
+    if (!interaction.member || !interaction.guild) {
       return new Error("Invalid interaction");
     }
 
@@ -78,7 +80,7 @@ export const playCommand = new AutocompleteSlashCommand(
 
       if (!search.hasTracks()) {
         await interaction.editReply(
-          "Playlist này không có gì cả, hoặc bài này không chơi được T^T",
+          "Album/Playlist này không có gì cả, hoặc bài này không chơi được T^T",
         );
         return null;
       }
@@ -95,16 +97,11 @@ export const playCommand = new AutocompleteSlashCommand(
         embed.setDescription(
           `Thêm vào danh sách phát ${search.playlist.tracks.length} bài.`,
         );
-        embed.setThumbnail(search.playlist.thumbnail);
+        embed.setImage(search.playlist.thumbnail);
         embed.addFields([
           {
             name: "Độ dài",
             value: search.playlist.durationFormatted,
-            inline: true,
-          },
-          {
-            name: "Nguồn",
-            value: search.playlist.source,
             inline: true,
           },
         ]);
@@ -118,16 +115,11 @@ export const playCommand = new AutocompleteSlashCommand(
         embed.setURL(track.url);
         embed.setTitle(track.title.substring(0, 256));
         embed.setDescription("Thêm vào danh sách phát.");
-        embed.setThumbnail(track.thumbnail);
+        embed.setImage(track.thumbnail);
         embed.addFields([
           {
             name: "Độ dài",
             value: track.duration,
-            inline: true,
-          },
-          {
-            name: "Nguồn",
-            value: track.source,
             inline: true,
           },
         ]);
@@ -166,7 +158,7 @@ export const playCommand = new AutocompleteSlashCommand(
     // getting results
     const search = await player.search(query, {
       requestedBy: interaction.user,
-      searchEngine: QueryType.YOUTUBE,
+      searchEngine: `ext:${NavidromeExtractor.identifier}`,
     });
 
     const results: {
@@ -176,7 +168,9 @@ export const playCommand = new AutocompleteSlashCommand(
 
     search.tracks.slice(0, 10).map((result) =>
       results.push({
-        name: `${result.author} - ${result.title}`,
+        name: `${result.author.substring(0, 20)} - ${result.title} 【${
+          (result.metadata as Child)?.album
+        }】`,
         value: result.url,
       }),
     );
