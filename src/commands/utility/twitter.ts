@@ -16,13 +16,24 @@ import {
   type InteractionResponse,
   SlashCommandBuilder,
   escapeMarkdown,
+  spoiler,
 } from "discord.js";
 import { joinURL, parseFilename } from "ufo";
 import { RemoveButton } from "../../components/removeButton.js";
 import { SourceButton } from "../../components/sourceButton.js";
-import { Twitter } from "../../lib/twitter.js";
+import { LikeCount } from "../../components/twitter/likeCount.js";
+import { QuotetweetButton } from "../../components/twitter/quotetweetButton.js";
+import { ReplyCount } from "../../components/twitter/replyCount.js";
+import { RetweetCount } from "../../components/twitter/retweetCount.js";
+import { type ExtractorTweet, Twitter } from "../../lib/twitter.js";
 import { SlashCommand } from "../../model/command.js";
-import type { VxTwitterResponse } from "../../types/vxtwitter.js";
+
+export type TwitterCommandOptions = {
+  tweet: boolean;
+  media: boolean;
+  spoiler: boolean;
+  translate?: string | null;
+};
 
 export const twitterCommand = new SlashCommand(
   new SlashCommandBuilder()
@@ -90,18 +101,17 @@ export const twitterCommand = new SlashCommand(
     // default to defer the reply
     const response = await interaction.deferReply();
 
-    // create embed
-    const embeds = [];
-    const attachments = [];
-    const videoURLs = [];
-    const actionRow = new ActionRowBuilder<ButtonBuilder>();
+    const meta = new ActionRowBuilder<ButtonBuilder>();
+    const actions = new ActionRowBuilder<ButtonBuilder>();
 
     // assigning query
     const url = interaction.options.getString("url", true);
-    const sendTweet = interaction.options.getBoolean("tweet", false) ?? true;
-    const sendMedia = interaction.options.getBoolean("media", false) ?? true;
-    const translateLanguage = interaction.options.getString("translate", false);
-    const isSpoiler = interaction.options.getBoolean("spoiler", false) ?? false;
+    const options: TwitterCommandOptions = {
+      tweet: interaction.options.getBoolean("tweet", false) ?? true,
+      media: interaction.options.getBoolean("media", false) ?? true,
+      translate: interaction.options.getString("translate", false),
+      spoiler: interaction.options.getBoolean("spoiler", false) ?? false,
+    };
 
     const [normalizedUrl, normalizeErr] = Twitter.normalizeUrl(url);
     if (normalizeErr != null) {
@@ -113,9 +123,9 @@ export const twitterCommand = new SlashCommand(
       return normalizeErr;
     }
 
-    try {
-      const [data, err] = await Twitter.extractTweet(normalizedUrl);
+    const [data, err] = await Twitter.extractTweet(normalizedUrl);
 
+    try {
       if (err != null) {
         throw err;
       }
@@ -128,59 +138,37 @@ export const twitterCommand = new SlashCommand(
         return null;
       }
 
-      if (sendTweet) {
-        const embed = new EmbedBuilder();
-        await embedTweet(embed, data);
+      const { embeds, attachments, videos } = await buildTweet(data, options);
 
-        if (translateLanguage) {
-          await translateEmbed(embed, translateLanguage);
-        }
-        embeds.push(embed);
-      }
-
-      if (sendMedia && data.mediaURLs.length > 0) {
-        for (const media of data.media_extended) {
-          if (
-            (media.type === "gif" || media.type === "video") &&
-            media.duration_millis &&
-            media.duration_millis >= 180_000 // 3 minutes
-          ) {
-            if (isSpoiler) {
-              videoURLs.push(`|| ${media.url} ||`);
-            } else {
-              videoURLs.push(media.url);
-            }
-          } else {
-            attachments.push(
-              new AttachmentBuilder(media.url, {
-                name: parseFilename(media.url, { strict: true }),
-              }).setSpoiler(isSpoiler),
-            );
-          }
-        }
-      }
-
-      actionRow.setComponents(
-        SourceButton(data.tweetURL, interaction.locale),
-        RemoveButton(interaction.locale),
+      meta.setComponents(
+        ReplyCount(data.replies),
+        RetweetCount(data.retweets),
+        LikeCount(data.likes),
+        SourceButton(data.url, interaction.locale),
       );
+      actions.addComponents(RemoveButton(interaction.locale));
+
+      if (data.quote) {
+        actions.addComponents(QuotetweetButton());
+      }
 
       await interaction.editReply({
         files: attachments,
         embeds: embeds,
-        content: !sendTweet ? videoURLs.join("\n") : undefined,
-        components: [actionRow],
+        content: !options.tweet ? videos.join("\n") : undefined,
+        components: [meta, actions],
       });
 
-      if (sendTweet && videoURLs.length > 0) {
+      if (options.tweet && videos.length > 0) {
         await interaction.followUp({
-          content: videoURLs.join("\n"),
+          content: videos.join("\n"),
         });
       }
     } catch (e) {
-      await onError(e, interaction, actionRow);
+      await onError(e, interaction);
     }
-    await collectRemoveRequest(interaction, response, actionRow);
+
+    await collectRequest(interaction, response, meta, actions, data, options);
     return null;
   },
 );
@@ -253,12 +241,13 @@ export const xCommand = new SlashCommand(
 async function onError(
   e: unknown,
   interaction: ChatInputCommandInteraction,
-  actionRow: ActionRowBuilder<ButtonBuilder>,
   message?: string,
 ) {
   logger.error(e);
 
-  actionRow.setComponents(RemoveButton(interaction.locale));
+  const actions = new ActionRowBuilder<ButtonBuilder>();
+
+  actions.setComponents(RemoveButton(interaction.locale));
 
   let content = message ?? "Đã có lỗi xảy ra... TwT";
 
@@ -268,29 +257,80 @@ async function onError(
 
   await interaction.editReply({
     content,
-    components: [actionRow],
+    components: [actions],
   });
 }
 
-async function embedTweet(embed: EmbedBuilder, data: VxTwitterResponse) {
+async function buildTweet(
+  data: ExtractorTweet,
+  options: TwitterCommandOptions,
+) {
+  const embeds: EmbedBuilder[] = [];
+  const attachments: AttachmentBuilder[] = [];
+  const videos: string[] = [];
+
+  // build embed tweet
+  if (options.tweet) {
+    const embed = new EmbedBuilder();
+    await embedTweet(embed, data);
+
+    if (options.translate) {
+      translateEmbed(embed, options.translate);
+    }
+
+    embeds.push(embed);
+  }
+
+  if (options.media) {
+    const _videos = data.media?.videos;
+    const _photos = data.media?.photos;
+
+    // build video
+    if (_videos) {
+      for (const media of _videos) {
+        // embed only video > 3 mins
+        if (media.duration >= 180_000) {
+          videos.push(options.spoiler ? spoiler(media.url) : media.url);
+        } else {
+          attachments.push(
+            new AttachmentBuilder(media.url, {
+              name: parseFilename(media.url, { strict: true }),
+            }).setSpoiler(options.spoiler),
+          );
+        }
+      }
+    }
+
+    // build attachments
+    if (_photos) {
+      for (const media of _photos) {
+        attachments.push(
+          new AttachmentBuilder(media.url, {
+            name: parseFilename(media.url, { strict: true }),
+          })
+            .setDescription(media.altText)
+            .setSpoiler(options.spoiler),
+        );
+      }
+    }
+  }
+
+  return { embeds, attachments, videos };
+}
+
+async function embedTweet(embed: EmbedBuilder, data: ExtractorTweet) {
   embed.setAuthor({
-    name: `${data.user_name} (@${data.user_screen_name})`,
-    iconURL: data.user_profile_image_url,
-    url: joinURL("https://twitter.com/", data.user_screen_name),
+    name: `${data.author.name} (@${data.author.screen_name})`,
+    iconURL: data.author.avatar_url,
+    url: joinURL("https://twitter.com/", data.author.screen_name),
   });
-  embed.setColor("#5dbaec");
-  embed.setURL(data.tweetURL);
-  embed.setFields([
-    { name: "Replies", value: data.replies.toString(), inline: true },
-    { name: "Reposts", value: data.retweets.toString(), inline: true },
-    { name: "Likes", value: data.likes.toString(), inline: true },
-  ]);
+  embed.setColor("#1da0f2");
+  embed.setURL(data.url);
   embed.setFooter({
     text: "Twitter",
-    iconURL:
-      "https://upload.wikimedia.org/wikipedia/commons/2/20/Coast_twitter.png",
+    iconURL: "https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
   });
-  embed.setTimestamp(new Date(data.date_epoch * 1000));
+  embed.setTimestamp(new Date(data.created_timestamp * 1000));
   if (data.text !== "") {
     embed.setDescription(escapeMarkdown(data.text));
   }
@@ -320,10 +360,13 @@ async function translateEmbed(embed: EmbedBuilder, translateLanguage: string) {
   embed.setDescription(translateInfo + translated);
 }
 
-async function collectRemoveRequest(
+async function collectRequest(
   interaction: ChatInputCommandInteraction,
   response: InteractionResponse<boolean>,
-  actionRow: ActionRowBuilder<ButtonBuilder>,
+  meta: ActionRowBuilder<ButtonBuilder>,
+  actions: ActionRowBuilder<ButtonBuilder>,
+  data?: ExtractorTweet | null,
+  options?: TwitterCommandOptions | null,
 ) {
   const collectorFilter: CollectorFilter<
     [
@@ -333,7 +376,7 @@ async function collectRemoveRequest(
   > = async (i) => {
     if (i.user.id !== interaction.user.id)
       await i.reply({
-        content: "Chỉ chủ bài đăng được xoá~",
+        content: "Chỉ chủ bài đăng dùng hành động~",
         ephemeral: true,
       });
 
@@ -348,17 +391,41 @@ async function collectRemoveRequest(
       });
 
     if (confirmation.customId === "remove") {
+      console.log(confirmation.customId);
       await interaction.deleteReply();
     }
-  } catch (e) {
-    actionRow.setComponents(
-      actionRow.components.filter(
-        (component) => component.toJSON().style !== ButtonStyle.Danger,
-      ),
-    );
 
+    if (confirmation.customId === "quotetweet" && data?.quote && options) {
+      const meta = new ActionRowBuilder<ButtonBuilder>();
+
+      const { embeds, attachments, videos } = await buildTweet(
+        data.quote,
+        options,
+      );
+
+      meta.setComponents(
+        ReplyCount(data.quote.replies),
+        RetweetCount(data.quote.retweets),
+        LikeCount(data.quote.likes),
+        SourceButton(data.quote.url, interaction.locale),
+      );
+
+      await interaction.followUp({
+        files: attachments,
+        embeds: embeds,
+        content: !options.tweet ? videos.join("\n") : undefined,
+        components: [meta],
+      });
+
+      if (options.tweet && videos.length > 0) {
+        await interaction.followUp({
+          content: videos.join("\n"),
+        });
+      }
+    }
+  } catch (e) {
     await interaction.editReply({
-      components: actionRow.components.length > 0 ? [actionRow] : [],
+      components: [meta],
     });
   }
 }
