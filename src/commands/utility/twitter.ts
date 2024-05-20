@@ -275,7 +275,7 @@ async function buildTweet(
     await embedTweet(embed, data);
 
     if (options.translate) {
-      translateEmbed(embed, options.translate);
+      await translateEmbed(embed, options.translate);
     }
 
     embeds.push(embed);
