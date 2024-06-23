@@ -136,6 +136,7 @@ if (
     url: process.env.NAVIDROME_URL,
     username: process.env.NAVIDROME_USERNAME,
     password: process.env.NAVIDROME_PASSWORD,
+    alternateUrl: process.env.NAVIDROME_ALTERNATE_URL,
   });
 }
 player.extractors.register(YouTubeExtractor, {});

@@ -18,6 +18,7 @@ type NavidromeOption = {
   url: string;
   username: string;
   password: string;
+  alternateUrl?: string;
 };
 
 export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
@@ -58,6 +59,14 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
       return true;
     }
 
+    if (this.options.alternateUrl) {
+      const _alternative = parseURL(this.options.alternateUrl);
+
+      if (_url.host === _alternative.host) {
+        return true;
+      }
+    }
+
     return false;
   }
 
@@ -69,15 +78,14 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
       return this.createResponse();
     }
 
-    const _endpoint = parseURL(this.options.url);
     const _url = parseURL(query);
 
-    if (_url.host === _endpoint.host) {
-      if (_url.hash.includes("album")) {
-        context.protocol = "navidrome-album";
-      } else if (_url.hash.includes("playlist")) {
-        context.protocol = "navidrome-playlist";
-      }
+    if (_url.hash.includes("album")) {
+      context.protocol = "navidrome-album";
+    } else if (_url.hash.includes("playlist")) {
+      context.protocol = "navidrome-playlist";
+    } else {
+      throw new Error("Invalid URL");
     }
 
     switch (context.protocol) {
