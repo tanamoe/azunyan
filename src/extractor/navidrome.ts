@@ -84,8 +84,6 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
       context.protocol = "navidrome-album";
     } else if (_url.hash.includes("playlist")) {
       context.protocol = "navidrome-playlist";
-    } else {
-      throw new Error("Invalid URL");
     }
 
     switch (context.protocol) {
