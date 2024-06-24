@@ -12,7 +12,7 @@ import SubsonicAPI, {
   type PlaylistWithSongs,
   type Child,
 } from "subsonic-api";
-import { joinURL, parseHost, parseURL, stringifyParsedURL } from "ufo";
+import { joinURL, parseURL, stringifyParsedURL } from "ufo";
 
 type NavidromeOption = {
   url: string;
@@ -132,7 +132,7 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
           );
 
           if (this.options.alternateUrl) {
-            _thumbnail.host = parseHost(this.options.alternateUrl).hostname;
+            _thumbnail.host = parseURL(this.options.alternateUrl).host;
           }
 
           playlist.thumbnail = stringifyParsedURL(_thumbnail);
@@ -196,10 +196,12 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
             ).url,
           );
 
+          console.log(_coverart);
           if (this.options.alternateUrl) {
-            _coverart.host = parseHost(this.options.alternateUrl).hostname;
+            _coverart.host = parseURL(this.options.alternateUrl).host;
           }
 
+          console.log(_coverart);
           playlist.thumbnail = stringifyParsedURL(_coverart);
         }
 
@@ -314,10 +316,12 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
         ).url,
       );
 
+      console.log(_coverart);
       if (this.options.alternateUrl) {
-        _coverart.host = parseHost(this.options.alternateUrl).hostname;
+        _coverart.host = parseURL(this.options.alternateUrl).host;
       }
 
+      console.log(_coverart);
       track.thumbnail = stringifyParsedURL(_coverart);
     }
 
