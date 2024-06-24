@@ -5,6 +5,7 @@ import {
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "discord.js";
+import { video_basic_info } from "play-dl";
 import type { Child } from "subsonic-api";
 import { parseQuery, parseURL, stringifyParsedURL, stringifyQuery } from "ufo";
 import { NavidromeExtractor } from "../../../extractor/navidrome.js";
@@ -66,13 +67,13 @@ export const playCommand = new AutocompleteSlashCommand(
         query = stringifyParsedURL(_url);
 
         // check Premium song
-        //        try {
-        //          await video_basic_info(query);
-        //        } catch (e: unknown) {
-        //          if (e instanceof Error) await interaction.editReply(e.message);
-        //          else logger.error(e);
-        //          return null;
-        //        }
+        try {
+          await video_basic_info(query);
+        } catch (e: unknown) {
+          if (e instanceof Error) await interaction.editReply(e.message);
+          else logger.error(e);
+          return null;
+        }
       }
 
       const search = await player.search(query);
