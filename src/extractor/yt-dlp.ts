@@ -31,7 +31,6 @@ const validPathDomains =
 const idRegex = /^[a-zA-Z0-9-_]{11}$/;
 
 export class YtdlpExtractor extends BaseExtractor {
-  public static ytdlpBinaryPath = "./bin/yt-dlp";
   public static identifier = "ytdlp-extractor" as const;
   public static instance: YtdlpExtractor | null;
 
@@ -277,7 +276,7 @@ export class YtdlpExtractor extends BaseExtractor {
     url = url.includes("youtube.com")
       ? url.replace(/(m(usic)?|gaming)\./, "")
       : url;
-    const ytDlpWrap = new YTDlpWrap.default(YtdlpExtractor.ytdlpBinaryPath);
+    const ytDlpWrap = new YTDlpWrap.default();
     const fileName = `${Math.random()}.m4a`;
     // TODO - I suppose to make the stream not to close until the song finished
     await ytDlpWrap.execPromise([url, "-f", "m4a", "-o", fileName]);
