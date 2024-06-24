@@ -166,19 +166,19 @@ export const playCommand = new AutocompleteSlashCommand(
       value: string;
     }[] = [];
 
-    search.tracks.slice(0, 25).map((result) => {
+    search.tracks.slice(0, 20).map((result) => {
       const author =
-        result.author.length > 20
-          ? `${result.author.substring(0, 19)}…`
+        result.author.length > 15
+          ? `${result.author.substring(0, 15)}…`
           : result.author;
       const title =
         result.title.length > 40
-          ? `${result.title.substring(0, 39)}…`
+          ? `${result.title.substring(0, 40)}…`
           : result.title;
       const metadata = result.metadata as Child;
       const album =
-        metadata.album && metadata.album.length > 30
-          ? `${metadata.album.substring(0, 39)}…`
+        metadata.album && metadata.album.length > 15
+          ? `${metadata.album.substring(0, 15)}…`
           : metadata.album;
 
       results.push({
