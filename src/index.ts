@@ -7,7 +7,6 @@ import {
 } from "@discord-player/extractor";
 import { Player } from "discord-player";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
-import YTDlpWrap from "yt-dlp-wrap";
 import { decideCommand, tuyanhemCommand } from "./commands/misc/decide.js";
 import { gachaCommand } from "./commands/misc/gacha.js";
 import { infoCommand } from "./commands/misc/info.js";
@@ -64,7 +63,6 @@ const commands = [
   playContextMenu,
 ];
 
-await downloadYtdlpBinary();
 await register(commands);
 
 // Handle interactions
@@ -173,7 +171,3 @@ player.events.on("playerError", (_, error) => {
   // Emitted when the audio player errors while streaming audio track
   logger.error(error);
 });
-
-async function downloadYtdlpBinary() {
-  await YTDlpWrap.default.downloadFromGithub(YtdlpExtractor.ytdlpBinaryPath);
-}
