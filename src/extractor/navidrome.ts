@@ -12,7 +12,7 @@ import SubsonicAPI, {
   type PlaylistWithSongs,
   type Child,
 } from "subsonic-api";
-import { joinURL, parseURL } from "ufo";
+import { joinURL, parseHost, parseURL, stringifyParsedURL } from "ufo";
 
 type NavidromeOption = {
   url: string;
@@ -109,12 +109,12 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
           source: "arbitrary",
           author: {
             name: _playlist.owner ?? "Unknown User",
-            url: this.options.url,
+            url: this.options.alternateUrl ?? this.options.url,
           },
           tracks: [],
           id: _playlist.id,
           url: joinURL(
-            this.options.url,
+            this.options.alternateUrl ?? this.options.url,
             "/app/#/playlist",
             _playlist.id,
             "/show",
@@ -123,11 +123,20 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
         });
 
         if (_playlist.entry?.length) {
-          playlist.thumbnail = (
-            await this.api.getCoverArt({
-              id: _playlist.entry[0].id,
-            })
-          ).url;
+          const _thumbnail = parseURL(
+            (
+              await this.api.getCoverArt({
+                id: _playlist.entry[0].id,
+              })
+            ).url,
+          );
+
+          if (this.options.alternateUrl) {
+            _thumbnail.host = parseHost(this.options.alternateUrl).hostname;
+          }
+
+          playlist.thumbnail = stringifyParsedURL(_thumbnail);
+
           playlist.tracks = await Promise.all(
             _playlist.entry?.map((song) => this.extractSong(song, context)),
           );
@@ -149,16 +158,10 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
 
         const _album = results.album as AlbumWithSongsID3;
 
-        const _coverart =
-          _album.coverArt &&
-          (await this.api.getCoverArt({ id: _album.coverArt }))?.url;
-        const thumbnail =
-          _coverart ??
-          "https://raw.githubusercontent.com/navidrome/navidrome/master/resources/logo-192x192.png";
-
         const playlist = new Playlist(this.context.player, {
           title: _album.name,
-          thumbnail,
+          thumbnail:
+            "https://raw.githubusercontent.com/navidrome/navidrome/master/resources/logo-192x192.png",
           type: "album",
           description: `${_album.year} · ${_album.genre}`,
           source: "arbitrary",
@@ -166,18 +169,39 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
             name: _album.artist ?? "Unknown Artist",
             url: _album.artistId
               ? joinURL(
-                  this.options.url,
+                  this.options.alternateUrl ?? this.options.url,
                   "/app/#/artist",
                   _album.artistId,
                   "/show",
                 )
-              : this.options.url,
+              : this.options.alternateUrl ?? this.options.url,
           },
           tracks: [],
           id: _album.id,
-          url: joinURL(this.options.url, "/app/#/album", _album.id, "/show"),
+          url: joinURL(
+            this.options.alternateUrl ?? this.options.url,
+            "/app/#/album",
+            _album.id,
+            "/show",
+          ),
           rawPlaylist: _album,
         });
+
+        if (_album.coverArt) {
+          const _coverart = parseURL(
+            (
+              await this.api.getCoverArt({
+                id: _album.coverArt,
+              })
+            ).url,
+          );
+
+          if (this.options.alternateUrl) {
+            _coverart.host = parseHost(this.options.alternateUrl).hostname;
+          }
+
+          playlist.thumbnail = stringifyParsedURL(_coverart);
+        }
 
         if (_album.song) {
           playlist.tracks = await Promise.all(
@@ -255,24 +279,24 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
   }
 
   async extractSong(song: Child, context?: ExtractorSearchContext) {
+    if (!this.api) {
+      throw new Error("Cannot connect to API");
+    }
+
     const url = song.albumId
       ? joinURL(
-          this.options.url,
+          this.options.alternateUrl ?? this.options.url,
           "/app/#/album",
           song.albumId,
           "/show",
           song.id.substring(1, 5),
         )
       : undefined;
-    const thumbnail = song.coverArt
-      ? (await this.api?.getCoverArt({ id: song.coverArt }))?.url
-      : undefined;
 
-    return new Track(this.context.player, {
+    const track = new Track(this.context.player, {
       title: song.title,
       author: song.artist ?? "Unknown Artist",
       url,
-      thumbnail,
       duration: Util.buildTimeCode(Util.parseMS((song.duration ?? 0) * 1000)),
       requestedBy: context?.requestedBy,
       metadata: song,
@@ -280,5 +304,23 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
         return song;
       },
     });
+
+    if (song.coverArt) {
+      const _coverart = parseURL(
+        (
+          await this.api.getCoverArt({
+            id: song.coverArt,
+          })
+        ).url,
+      );
+
+      if (this.options.alternateUrl) {
+        _coverart.host = parseHost(this.options.alternateUrl).hostname;
+      }
+
+      track.thumbnail = stringifyParsedURL(_coverart);
+    }
+
+    return track;
   }
 }
