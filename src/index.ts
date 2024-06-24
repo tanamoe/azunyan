@@ -7,6 +7,7 @@ import {
 } from "@discord-player/extractor";
 import { Player } from "discord-player";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
+import YTDlpWrap from "yt-dlp-wrap";
 import { decideCommand, tuyanhemCommand } from "./commands/misc/decide.js";
 import { gachaCommand } from "./commands/misc/gacha.js";
 import { infoCommand } from "./commands/misc/info.js";
@@ -22,6 +23,7 @@ import { artworkCommand } from "./commands/utility/artwork.js";
 import { pixivCommand } from "./commands/utility/pixiv.js";
 import { twitterCommand, xCommand } from "./commands/utility/twitter.js";
 import { NavidromeExtractor } from "./extractor/navidrome.js";
+import { YtdlpExtractor } from "./extractor/yt-dlp.js";
 import { logger } from "./lib/logger.js";
 import { register } from "./lib/register.js";
 import type {
@@ -62,6 +64,7 @@ const commands = [
   playContextMenu,
 ];
 
+await downloadYtdlpBinary();
 await register(commands);
 
 // Handle interactions
@@ -139,7 +142,7 @@ if (
     alternateUrl: process.env.NAVIDROME_ALTERNATE_URL,
   });
 }
-player.extractors.register(YouTubeExtractor, {});
+player.extractors.register(YtdlpExtractor, {});
 player.extractors.register(SpotifyExtractor, {});
 player.extractors.register(AttachmentExtractor, {});
 player.extractors.register(AppleMusicExtractor, {});
@@ -170,3 +173,7 @@ player.events.on("playerError", (_, error) => {
   // Emitted when the audio player errors while streaming audio track
   logger.error(error);
 });
+
+async function downloadYtdlpBinary() {
+  await YTDlpWrap.default.downloadFromGithub(YtdlpExtractor.ytdlpBinaryPath);
+}
