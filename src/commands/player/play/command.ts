@@ -67,13 +67,13 @@ export const playCommand = new AutocompleteSlashCommand(
         query = stringifyParsedURL(_url);
 
         // check Premium song
-        try {
+        /* try {
           await video_basic_info(query);
         } catch (e: unknown) {
           if (e instanceof Error) await interaction.editReply(e.message);
           else logger.error(e);
           return null;
-        }
+        } */
       }
 
       const search = await player.search(query);
