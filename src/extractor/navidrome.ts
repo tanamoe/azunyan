@@ -196,12 +196,10 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
             ).url,
           );
 
-          console.log(_coverart);
           if (this.options.alternateUrl) {
             _coverart.host = parseURL(this.options.alternateUrl).host;
           }
 
-          console.log(_coverart);
           playlist.thumbnail = stringifyParsedURL(_coverart);
         }
 
@@ -213,6 +211,7 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
 
         return this.createResponse(playlist, playlist.tracks);
       }
+
       default: {
         const results = await this.api.search3({
           query,
@@ -316,12 +315,10 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
         ).url,
       );
 
-      console.log(_coverart);
       if (this.options.alternateUrl) {
         _coverart.host = parseURL(this.options.alternateUrl).host;
       }
 
-      console.log(_coverart);
       track.thumbnail = stringifyParsedURL(_coverart);
     }
 
