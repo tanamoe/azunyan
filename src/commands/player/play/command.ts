@@ -190,6 +190,6 @@ export const playCommand = new AutocompleteSlashCommand(
 
     await interaction.respond(results);
 
-    return [];
+    return null;
   },
 );
