@@ -214,19 +214,26 @@ export class YtdlpExtractor extends BaseExtractor {
   public async getRelatedTracks(track: Track, history: GuildQueueHistory) {
     let info: Video[] | undefined = undefined;
 
-    if (YtdlpExtractor.validateURL(track.url))
-      info = await YouTube.getVideo(track.url)
-        .then((x) => x.videos)
-        .catch(Util.noop);
+    if (YtdlpExtractor.validateURL(track.url)) {
+      try {
+        const video = await YouTube.getVideo(track.url);
+        info = video.videos;
+      } catch (e) {
+        Util.noop;
+      }
+    }
 
     // fallback
-    if (!info)
-      info = await YouTube.search(track.author || track.title, {
-        limit: 5,
-        type: "video",
-      })
-        .then((x) => x)
-        .catch(Util.noop);
+    if (!info) {
+      try {
+        info = await YouTube.search(track.author || track.title, {
+          limit: 5,
+          type: "video",
+        });
+      } catch (e) {
+        Util.noop;
+      }
+    }
 
     if (!info?.length) {
       return this.createResponse();
@@ -279,7 +286,8 @@ export class YtdlpExtractor extends BaseExtractor {
     const ytDlpWrap = new YTDlpWrap.default();
     const fileName = `${Math.random()}.m4a`;
     // TODO - I suppose to make the stream not to close until the song finished
-    await ytDlpWrap.execPromise([url, "-f", "m4a", "-o", fileName]);
+    // cherry picked: force ipv4
+    await ytDlpWrap.execPromise([url, "-f", "m4a", "-4", "-o", fileName]);
     const readStream = fs.createReadStream(fileName);
     readStream.on("close", () => {
       fs.unlink(fileName, () => {});
