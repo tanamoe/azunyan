@@ -3,7 +3,6 @@ import {
   AttachmentExtractor,
   SoundCloudExtractor,
   SpotifyExtractor,
-  YouTubeExtractor,
 } from "@discord-player/extractor";
 import { Player } from "discord-player";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";

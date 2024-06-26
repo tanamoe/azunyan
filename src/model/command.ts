@@ -6,6 +6,7 @@ import type {
   ContextMenuCommandBuilder,
   MessageContextMenuCommandInteraction,
   SlashCommandBuilder,
+  SlashCommandOptionsOnlyBuilder,
   SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
 
@@ -21,6 +22,7 @@ export abstract class BaseCommand<T, U extends BaseInteraction> {
 
 export class SlashCommand extends BaseCommand<
   | SlashCommandBuilder
+  | SlashCommandOptionsOnlyBuilder
   | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
   | SlashCommandSubcommandsOnlyBuilder,
   ChatInputCommandInteraction
@@ -28,6 +30,7 @@ export class SlashCommand extends BaseCommand<
   constructor(
     public readonly data:
       | SlashCommandBuilder
+      | SlashCommandOptionsOnlyBuilder
       | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
       | SlashCommandSubcommandsOnlyBuilder,
     public readonly execute: (
@@ -42,6 +45,7 @@ export class AutocompleteSlashCommand extends SlashCommand {
   constructor(
     public readonly data:
       | SlashCommandBuilder
+      | SlashCommandOptionsOnlyBuilder
       | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
       | SlashCommandSubcommandsOnlyBuilder,
     public readonly execute: (
