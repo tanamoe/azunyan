@@ -65,15 +65,6 @@ export const playCommand = new AutocompleteSlashCommand(
         const _query = parseQuery(_url.search);
         _url.search = stringifyQuery({ v: _query.v });
         query = stringifyParsedURL(_url);
-
-        // check Premium song
-        /* try {
-          await video_basic_info(query);
-        } catch (e: unknown) {
-          if (e instanceof Error) await interaction.editReply(e.message);
-          else logger.error(e);
-          return null;
-        } */
       }
 
       const search = await player.search(query);
@@ -177,8 +168,8 @@ export const playCommand = new AutocompleteSlashCommand(
           : result.title;
       const metadata = result.metadata as Child;
       const album =
-        metadata.album && metadata.album.length > 15
-          ? `${metadata.album.substring(0, 15)}…`
+        metadata.album && metadata.album.length > 30
+          ? `${metadata.album.substring(0, 30)}…`
           : metadata.album;
 
       results.push({
