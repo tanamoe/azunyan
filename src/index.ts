@@ -5,6 +5,10 @@ import {
   SpotifyExtractor,
 } from "@discord-player/extractor";
 import { Player } from "discord-player";
+import {
+  YoutubeiExtractor,
+  createYoutubeiStream,
+} from "discord-player-youtubei";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
 import { decideCommand, tuyanhemCommand } from "./commands/misc/decide.js";
 import { gachaCommand } from "./commands/misc/gacha.js";
@@ -22,7 +26,6 @@ import { instagramCommand } from "./commands/utility/instagram.js";
 import { pixivCommand } from "./commands/utility/pixiv.js";
 import { twitterCommand, xCommand } from "./commands/utility/twitter.js";
 import { NavidromeExtractor } from "./extractor/navidrome.js";
-import { YtdlpExtractor } from "./extractor/yt-dlp.js";
 import { logger } from "./lib/logger.js";
 import { register } from "./lib/register.js";
 import type {
@@ -141,10 +144,14 @@ if (
     alternateUrl: process.env.NAVIDROME_ALTERNATE_URL,
   });
 }
-player.extractors.register(YtdlpExtractor, {});
-player.extractors.register(SpotifyExtractor, {});
+player.extractors.register(YoutubeiExtractor, {});
+player.extractors.register(SpotifyExtractor, {
+  createStream: createYoutubeiStream,
+});
 player.extractors.register(AttachmentExtractor, {});
-player.extractors.register(AppleMusicExtractor, {});
+player.extractors.register(AppleMusicExtractor, {
+  createStream: createYoutubeiStream,
+});
 player.extractors.register(SoundCloudExtractor, {});
 
 logger.ready("Logged in and ready");
