@@ -221,7 +221,7 @@ async function buildPost(
         } else {
           attachments.push(
             new AttachmentBuilder(media.url, {
-              name: parseFilename(media.url, { strict: true }),
+              name: `${parseFilename(media.url, { strict: true })}.jpeg`,
             }).setSpoiler(options.spoiler),
           );
         }

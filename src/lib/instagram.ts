@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import { HTTPError } from "discord.js";
 import { ofetch } from "ofetch";
-import { joinURL, parseURL } from "ufo";
+import { joinURL, parseURL, withoutTrailingSlash } from "ufo";
 
 export type InstagramMedia = {
   url: string;
@@ -37,10 +37,26 @@ export class Instagram {
       return ["", new Error(`Unsupported url '${path}'`)];
     }
 
-    const id = url.pathname.split("/").at(2);
+    let id = withoutTrailingSlash(url.pathname).split("/").at(-1);
 
     if (!id) {
       return ["", new Error(`Unsupported path '${url.pathname}'`)];
+    }
+
+    // see https://github.com/Wikidepia/InstaFix/blob/main/handlers/embed.go#L17
+    if (url.pathname.includes("stories")) {
+      const alphabet =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+      let shortCode = "";
+      let mediaId = BigInt(id);
+      // js is stupid here
+      while (mediaId > 0) {
+        const r = mediaId % 64n;
+        mediaId = BigInt(mediaId / 64n);
+        shortCode = alphabet[Number(r)].toString() + shortCode;
+      }
+
+      id = shortCode;
     }
 
     return [id, null];
