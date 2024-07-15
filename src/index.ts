@@ -18,6 +18,7 @@ import { shuffleCommand } from "./commands/player/shuffle.js";
 import { skipCommand } from "./commands/player/skip.js";
 import { stopCommand } from "./commands/player/stop.js";
 import { artworkCommand } from "./commands/utility/artwork.js";
+import { instagramCommand } from "./commands/utility/instagram.js";
 import { pixivCommand } from "./commands/utility/pixiv.js";
 import { twitterCommand, xCommand } from "./commands/utility/twitter.js";
 import { NavidromeExtractor } from "./extractor/navidrome.js";
@@ -52,6 +53,7 @@ const commands = [
   twitterCommand,
   xCommand,
   pixivCommand,
+  instagramCommand,
   // playback-related
   playCommand,
   queueCommand,
