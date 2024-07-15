@@ -6,7 +6,6 @@ import {
   AttachmentBuilder,
   type ButtonBuilder,
   type ButtonInteraction,
-  ButtonStyle,
   type CacheType,
   type ChatInputCommandInteraction,
   type Collection,
@@ -16,6 +15,7 @@ import {
   type InteractionResponse,
   SlashCommandBuilder,
   escapeMarkdown,
+  hyperlink,
   spoiler,
 } from "discord.js";
 import { joinURL, parseFilename } from "ufo";
@@ -161,7 +161,7 @@ export const twitterCommand = new SlashCommand(
 
       if (options.tweet && videos.length > 0) {
         await interaction.followUp({
-          content: videos.join("\n"),
+          content: videos.join(" "),
         });
       }
     } catch (e) {
@@ -288,9 +288,13 @@ async function buildTweet(
     // build video
     if (_videos) {
       for (const media of _videos) {
-        // embed only video > 3 mins
+        // embed only video < 3 mins
         if (media.duration >= 180_000) {
-          videos.push(options.spoiler ? spoiler(media.url) : media.url);
+          videos.push(
+            options.spoiler
+              ? spoiler(hyperlink("Media", media.url))
+              : hyperlink("Media", media.url),
+          );
         } else {
           attachments.push(
             new AttachmentBuilder(media.url, {
