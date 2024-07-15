@@ -15,7 +15,7 @@ FROM node:20.14.0 as image
 
 # deps: install runtime dependencies
 RUN apt update
-RUN apt install -y ffmpeg yt-dlp
+RUN apt install -y ffmpeg
 
 COPY --from=build /app /app
 WORKDIR /app
