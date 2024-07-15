@@ -1,7 +1,7 @@
-FROM oven/bun as build
+FROM oven/bun:alpine as build
 
-RUN apt update
-RUN apt install -y python3 build-essential git
+RUN apk update
+RUN apk add python3 alpine-sdk
 
 # copy dirs
 COPY . /app
@@ -11,11 +11,11 @@ WORKDIR /app
 RUN bun install --frozen-lockfile
 RUN bun run build
 
-FROM node:20.15.1 as image
+FROM node:20.15.1-alpine as image
 
 # deps: install runtime dependencies
-RUN apt update
-RUN apt install -y ffmpeg
+RUN apk update
+RUN apk add --no-cache ffmpeg
 
 COPY --from=build /app /app
 WORKDIR /app
