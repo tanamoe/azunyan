@@ -24,6 +24,7 @@ import { stopCommand } from "./commands/player/stop.js";
 import { artworkCommand } from "./commands/utility/artwork.js";
 import { instagramCommand } from "./commands/utility/instagram.js";
 import { pixivCommand } from "./commands/utility/pixiv.js";
+import { tiktokCommand } from "./commands/utility/tiktok.js";
 import { twitterCommand, xCommand } from "./commands/utility/twitter.js";
 import { NavidromeExtractor } from "./extractor/navidrome.js";
 import { logger } from "./lib/logger.js";
@@ -57,6 +58,7 @@ const commands = [
   xCommand,
   pixivCommand,
   instagramCommand,
+  tiktokCommand,
   // playback-related
   playCommand,
   queueCommand,
