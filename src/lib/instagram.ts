@@ -122,7 +122,6 @@ export class Instagram {
           headers: {
             "User-Agent": "discord",
           },
-          method: "HEAD",
         });
 
         const size = data.headers.get("Content-Length");
