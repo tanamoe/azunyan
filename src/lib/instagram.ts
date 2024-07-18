@@ -125,7 +125,7 @@ export class Instagram {
         });
 
         const size = data.headers.get("Content-Length");
-        if (!size) {
+        if (!size || size === "0") {
           return [images, null];
         }
 
