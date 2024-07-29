@@ -53,7 +53,7 @@ export const skipCommand = new SlashCommand(
         }
 
         await interaction.editReply(
-          `Đã cho qua:\n${orderedList(removed.map((track) => hideLinkEmbed(hyperlink(track.cleanTitle || track.title, track.url))))}`,
+          `Đã cho qua:\n${orderedList(removed.map((track) => hyperlink(track.cleanTitle || track.title, hideLinkEmbed(track.url))))}`,
         );
 
         return null;
