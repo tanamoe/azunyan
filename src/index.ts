@@ -11,6 +11,7 @@ import { decideCommand, tuyanhemCommand } from "./commands/misc/decide.js";
 import { gachaCommand } from "./commands/misc/gacha.js";
 import { infoCommand } from "./commands/misc/info.js";
 import { jpyCommand } from "./commands/misc/jpy.js";
+import { lyricsCommand } from "./commands/player/lyrics.js";
 import { playCommand } from "./commands/player/play/command.js";
 import { playContextMenu } from "./commands/player/play/contextMenu.js";
 import { queueCommand } from "./commands/player/queue/command.js";
@@ -64,6 +65,7 @@ const commands = [
   skipCommand,
   stopCommand,
   playContextMenu,
+  lyricsCommand,
 ];
 
 await register(commands);
