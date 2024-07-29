@@ -6,6 +6,8 @@ import {
   ComponentType,
   EmbedBuilder,
   SlashCommandBuilder,
+  hyperlink,
+  orderedList,
 } from "discord.js";
 import { SlashCommand } from "../../../model/command.js";
 
@@ -70,15 +72,15 @@ export const queueCommand = new SlashCommand(
       embed.addFields(
         {
           name: "Sắp tới",
-          value: tracks
-            .slice(page * 5, page * 5 + 5)
-            .map(
-              (track, i) =>
-                `${page * 5 + i + 1}. [${track.title.slice(0, 300)}](${
-                  track.url
-                })`,
-            )
-            .join("\n"),
+          value: orderedList(
+            tracks
+              .slice(page * 5, page * 5 + 5)
+              .map(
+                (track) =>
+                  hyperlink(track.cleanTitle || track.title, track.url),
+                page * 5 + 1,
+              ),
+          ),
         },
         {
           name: "Trang",

@@ -1,5 +1,10 @@
 import { useQueue } from "discord-player";
-import { SlashCommandBuilder, hideLinkEmbed, hyperlink } from "discord.js";
+import {
+  SlashCommandBuilder,
+  hideLinkEmbed,
+  hyperlink,
+  orderedList,
+} from "discord.js";
 import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
 
@@ -41,19 +46,15 @@ export const skipCommand = new SlashCommand(
           return null;
         }
 
-        const removed = queue.tracks
-          .toArray()
-          .splice(from, to - from + 1)
-          .map(
-            (track, i) =>
-              `${i + 1}. ${hyperlink(track.title, hideLinkEmbed(track.url))}`,
-          );
+        const removed = queue.tracks.toArray().splice(from, to - from + 1);
 
         for (let i = to; i >= from; i--) {
           queue.removeTrack(i);
         }
 
-        await interaction.editReply(`Đã cho qua:\n${removed.join("\n")}`);
+        await interaction.editReply(
+          `Đã cho qua:\n${orderedList(removed.map((track) => hideLinkEmbed(hyperlink(track.cleanTitle || track.title, track.url))))}`,
+        );
 
         return null;
       } catch (error) {

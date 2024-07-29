@@ -5,7 +5,6 @@ import {
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "discord.js";
-import { video_basic_info } from "play-dl";
 import type { Child } from "subsonic-api";
 import { parseQuery, parseURL, stringifyParsedURL, stringifyQuery } from "ufo";
 import { NavidromeExtractor } from "../../../extractor/navidrome.js";
@@ -104,7 +103,7 @@ export const playCommand = new AutocompleteSlashCommand(
             name: track.author.substring(0, 256),
           });
         embed.setURL(track.url);
-        embed.setTitle(track.title.substring(0, 256));
+        embed.setTitle(track.cleanTitle || track.title);
         embed.setDescription("Thêm vào danh sách phát.");
         embed.setImage(track.thumbnail);
         embed.addFields([
