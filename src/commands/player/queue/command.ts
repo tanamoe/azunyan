@@ -1,4 +1,9 @@
-import { QueueRepeatMode, useQueue } from "discord-player";
+import {
+  type GuildQueue,
+  QueueRepeatMode,
+  type Track,
+  useQueue,
+} from "discord-player";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -43,62 +48,7 @@ export const queueCommand = new SlashCommand(
     const embed = new EmbedBuilder();
     const actionRow = new ActionRowBuilder<ButtonBuilder>();
 
-    embed.setColor("#89c4f4");
-    embed.setTitle("Hiện đang chơi");
-    embed.setDescription(`[${currentTrack.title}](${currentTrack.url})`);
-    embed.setThumbnail(currentTrack.thumbnail);
-
-    embed.addFields(
-      {
-        name: "Shuffle",
-        value: queue.isShuffling ? "🔀 Bật" : "Tắt",
-        inline: true,
-      },
-      {
-        name: "Repeat",
-        value:
-          queue.repeatMode === QueueRepeatMode.AUTOPLAY
-            ? "⏩ Autoplay"
-            : queue.repeatMode === QueueRepeatMode.QUEUE
-              ? "🔁 Queue"
-              : queue.repeatMode === QueueRepeatMode.TRACK
-                ? "🔂 Track"
-                : "Tắt",
-        inline: true,
-      },
-    );
-
-    if (tracks.length > 0) {
-      embed.addFields(
-        {
-          name: "Sắp tới",
-          value: orderedList(
-            tracks
-              .slice(page * 5, page * 5 + 5)
-              .map(
-                (track) =>
-                  hyperlink(track.cleanTitle || track.title, track.url),
-                page * 5 + 1,
-              ),
-          ),
-        },
-        {
-          name: "Trang",
-          value: `${page + 1}/${Math.ceil(tracks.length / 5)}`,
-          inline: true,
-        },
-        {
-          name: "Thời lượng",
-          value: queue.durationFormatted,
-          inline: true,
-        },
-        {
-          name: "Số lượng",
-          value: `${tracks.length} bài`,
-          inline: true,
-        },
-      );
-    }
+    buildEmbed(embed, queue, currentTrack, tracks, page);
 
     actionRow.setComponents(
       new ButtonBuilder()
@@ -109,7 +59,7 @@ export const queueCommand = new SlashCommand(
       new ButtonBuilder()
         .setCustomId("next")
         .setLabel("Sau")
-        .setDisabled(tracks.length < 5)
+        .setDisabled(tracks.length < 6)
         .setStyle(ButtonStyle.Secondary),
     );
 
@@ -124,89 +74,26 @@ export const queueCommand = new SlashCommand(
     });
 
     collector.on("collect", async (i) => {
-      if (i.customId === "previous") {
-        if (page > 0) page--;
-
-        embed.setFields(
-          {
-            name: "Sắp tới",
-            value: tracks
-              .slice(page * 5, page * 5 + 5)
-              .map(
-                (track, i) =>
-                  `${page * 5 + i + 1}. [${track.title.slice(0, 300)}](${
-                    track.url
-                  })`,
-              )
-              .join("\n"),
-          },
-          {
-            name: "Trang",
-            value: `${page + 1}/${Math.ceil(tracks.length / 5)}`,
-            inline: true,
-          },
-          {
-            name: "Thời lượng",
-            value: queue.durationFormatted,
-            inline: true,
-          },
-          {
-            name: "Số lượng",
-            value: `${tracks.length} bài`,
-            inline: true,
-          },
-        );
-
-        await interaction.editReply({
-          embeds: [embed],
-          components: [actionRow],
-        });
-      } else if (i.customId === "next") {
-        if (page < Math.ceil(tracks.length / 5)) page++;
-
-        embed.setFields(
-          {
-            name: "Sắp tới",
-            value: tracks
-              .slice(page * 5, page * 5 + 5)
-              .map(
-                (track, i) =>
-                  `${page * 5 + i + 1}. [${track.title.slice(0, 300)}](${
-                    track.url
-                  })`,
-              )
-              .join("\n"),
-          },
-          {
-            name: "Trang",
-            value: `${page + 1}/${Math.ceil(tracks.length / 5)}`,
-            inline: true,
-          },
-          {
-            name: "Thời lượng",
-            value: queue.durationFormatted,
-            inline: true,
-          },
-          {
-            name: "Số lượng",
-            value: `${tracks.length} bài`,
-            inline: true,
-          },
-        );
+      if (i.customId === "previous" && page > 0) {
+        page--;
+      } else if (i.customId === "next" && page < Math.ceil(tracks.length / 5)) {
+        page++;
       }
 
-      if ((page + 1) * 5 > tracks.length) {
-        actionRow.components
-          .find((component) => component.data.label === "Sau")
-          ?.setDisabled(true);
-      } else if (page === 0) {
-        actionRow.components
-          .find((component) => component.data.label === "Trước")
-          ?.setDisabled(true);
-      } else {
-        for (const component of actionRow.components) {
-          component.setDisabled(false);
+      buildEmbed(embed, queue, currentTrack, tracks, page);
+
+      for (const component of actionRow.components) {
+        if (page === 0 && component.data.label === "Trước") {
+          component.setDisabled(true);
+          continue;
         }
+
+        if ((page + 1) * 5 >= tracks.length && component.data.label === "Sau") {
+          component.setDisabled(true);
+          continue;
+        }
+
+        component.setDisabled(false);
       }
 
       await i.update({ embeds: [embed], components: [actionRow] });
@@ -215,3 +102,64 @@ export const queueCommand = new SlashCommand(
     return null;
   },
 );
+
+function buildEmbed(
+  embed: EmbedBuilder,
+  queue: GuildQueue,
+  currentTrack: Track,
+  tracks: Track[],
+  page: number,
+) {
+  embed.setColor("#89c4f4");
+  embed.setTitle("Hiện đang chơi");
+  embed.setDescription(
+    hyperlink(currentTrack.cleanTitle || currentTrack.title, currentTrack.url),
+  );
+  embed.setThumbnail(currentTrack.thumbnail);
+
+  embed.setFields(
+    {
+      name: "Shuffle",
+      value: queue.isShuffling ? "🔀 Bật" : "Tắt",
+      inline: true,
+    },
+    {
+      name: "Repeat",
+      value:
+        queue.repeatMode === QueueRepeatMode.AUTOPLAY
+          ? "⏩ Autoplay"
+          : queue.repeatMode === QueueRepeatMode.QUEUE
+            ? "🔁 Queue"
+            : queue.repeatMode === QueueRepeatMode.TRACK
+              ? "🔂 Track"
+              : "Tắt",
+      inline: true,
+    },
+    {
+      name: "Sắp tới",
+      value: orderedList(
+        tracks
+          .slice(page * 5, page * 5 + 5)
+          .map((track) =>
+            hyperlink(track.cleanTitle || track.title, track.url),
+          ),
+        page * 5 + 1,
+      ),
+    },
+    {
+      name: "Trang",
+      value: `${page + 1}/${Math.ceil(tracks.length / 5)}`,
+      inline: true,
+    },
+    {
+      name: "Thời lượng",
+      value: queue.durationFormatted,
+      inline: true,
+    },
+    {
+      name: "Số lượng",
+      value: `${tracks.length} bài`,
+      inline: true,
+    },
+  );
+}
