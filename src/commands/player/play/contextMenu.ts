@@ -64,7 +64,7 @@ export const playContextMenu = new ContextMenuCommand(
           name: track.author.substring(0, 256),
         });
       embed.setURL(track.url);
-      embed.setTitle(track.title.substring(0, 256));
+      embed.setTitle(track.cleanTitle || track.title);
       embed.setDescription("Thêm vào danh sách phát.");
       embed.setThumbnail(track.thumbnail);
       embed.addFields([

@@ -5,10 +5,7 @@ import {
   SpotifyExtractor,
 } from "@discord-player/extractor";
 import { Player } from "discord-player";
-import {
-  YoutubeiExtractor,
-  createYoutubeiStream,
-} from "discord-player-youtubei";
+import { YoutubeiExtractor } from "discord-player-youtubei";
 import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
 import { decideCommand, tuyanhemCommand } from "./commands/misc/decide.js";
 import { gachaCommand } from "./commands/misc/gacha.js";
@@ -147,13 +144,9 @@ if (
   });
 }
 player.extractors.register(YoutubeiExtractor, {});
-player.extractors.register(SpotifyExtractor, {
-  createStream: createYoutubeiStream,
-});
+player.extractors.register(SpotifyExtractor, {});
 player.extractors.register(AttachmentExtractor, {});
-player.extractors.register(AppleMusicExtractor, {
-  createStream: createYoutubeiStream,
-});
+player.extractors.register(AppleMusicExtractor, {});
 player.extractors.register(SoundCloudExtractor, {});
 
 logger.ready("Logged in and ready");
