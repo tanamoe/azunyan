@@ -39,11 +39,10 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
 
     this.api = new SubsonicAPI({
       url,
-      type: "navidrome",
-    });
-    await this.api.login({
-      username,
-      password,
+      auth: {
+        username,
+        password,
+      },
     });
   }
 
