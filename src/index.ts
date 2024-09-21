@@ -78,7 +78,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
     );
 
     if (!command) {
-      logger.error(`Không tìm thấy lệnh ${interaction.commandName} nyaaaaa~`);
+      logger.error(
+        `Không tìm thấy lệnh ${interaction.commandName} nyaaaaahttps://music.chong-arisu.id.vn/~`,
+      );
       return;
     }
 
@@ -134,16 +136,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
 const player = new Player(client);
 
 if (
-  process.env.NAVIDROME_URL &&
-  process.env.NAVIDROME_USERNAME &&
-  process.env.NAVIDROME_PASSWORD
+  process.env.NAVIDROME_CLIENT_COUNT &&
+  Number.parseInt(process.env.NAVIDROME_CLIENT_COUNT) > 0
 ) {
-  player.extractors.register(NavidromeExtractor, {
-    url: process.env.NAVIDROME_URL,
-    username: process.env.NAVIDROME_USERNAME,
-    password: process.env.NAVIDROME_PASSWORD,
-    alternateUrl: process.env.NAVIDROME_ALTERNATE_URL,
-  });
+  const clientCount = Number.parseInt(process.env.NAVIDROME_CLIENT_COUNT);
+  player.extractors.register(
+    NavidromeExtractor,
+    Array.from({ length: clientCount }).map((_, i) => ({
+      url: process.env[`NAVIDROME_URL_${i}`] || "",
+      username: process.env[`NAVIDROME_USERNAME_${i}`] || "",
+      password: process.env[`NAVIDROME_PASSWORD_${i}`] || "",
+      alternateUrl: process.env[`NAVIDROME_ALTERNATE_URL_${i}`],
+    })),
+  );
 }
 player.extractors.register(YoutubeiExtractor, {});
 player.extractors.register(SpotifyExtractor, {});
