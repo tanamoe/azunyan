@@ -11,6 +11,7 @@ import SubsonicAPI, {
   type AlbumWithSongsID3,
   type PlaylistWithSongs,
   type Child,
+  SearchResult3,
 } from "subsonic-api";
 import { joinURL, parseURL, stringifyParsedURL } from "ufo";
 
@@ -21,28 +22,30 @@ type NavidromeOption = {
   alternateUrl?: string;
 };
 
-export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
+export class NavidromeExtractor extends BaseExtractor<NavidromeOption[]> {
   static identifier = "navidrome-extrator" as const;
-  private api: SubsonicAPI | null = null;
+  private api: SubsonicAPI[] | null = null;
 
   public createBridgeQuery = (track: Track) =>
     `${track.title} by ${track.author}`;
 
   async activate(): Promise<void> {
-    const { url, username, password } = this.options;
     this.protocols = [
       "navidrome-search",
       "navidrome-search-playlist",
       "navidrome-playlist",
       "navidrome-album",
     ];
+    this.api = this.options.map((credential) => {
+      const { url, username, password } = credential;
 
-    this.api = new SubsonicAPI({
-      url,
-      auth: {
-        username,
-        password,
-      },
+      return new SubsonicAPI({
+        url,
+        auth: {
+          username,
+          password,
+        },
+      });
     });
   }
 
@@ -50,23 +53,33 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
     this.protocols = [];
   }
 
+  private findIndex(query: string): number {
+    return (
+      this.options
+        .map((credential, index) => {
+          const _endpoint = parseURL(credential.url);
+          const _url = parseURL(query);
+
+          if (_url.host === _endpoint.host) {
+            return index + 1;
+          }
+
+          if (credential.alternateUrl) {
+            const _alternative = parseURL(credential.alternateUrl);
+
+            if (_url.host === _alternative.host) {
+              return index + 1;
+            }
+          }
+
+          return 0;
+        })
+        .reduce((acc, curr) => (curr > 0 ? curr : acc), 0) - 1
+    );
+  }
+
   async validate(query: string): Promise<boolean> {
-    const _endpoint = parseURL(this.options.url);
-    const _url = parseURL(query);
-
-    if (_url.host === _endpoint.host) {
-      return true;
-    }
-
-    if (this.options.alternateUrl) {
-      const _alternative = parseURL(this.options.alternateUrl);
-
-      if (_url.host === _alternative.host) {
-        return true;
-      }
-    }
-
-    return false;
+    return this.findIndex(query) >= 0;
   }
 
   async handle(
@@ -84,20 +97,29 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
     } else if (_url.hash.includes("playlist")) {
       context.protocol = "navidrome-playlist";
     }
-
     switch (context.protocol) {
       case "navidrome-playlist": {
+        const _srcIndex = this.findIndex(query);
+        if (_srcIndex < 0) return this.createResponse();
+        const _api = this.api[_srcIndex];
+        const _credential = this.options[_srcIndex];
         const _id = _url.hash.match(/playlist\/(.*)\/show/);
 
         if (!_id || !_id.length) return this.createResponse();
 
-        const results = await this.api.getPlaylist({
+        const results = await _api.getPlaylist({
           id: _id[1],
         });
 
         if (!results) return this.createResponse();
 
         const _playlist = results.playlist as PlaylistWithSongs;
+
+        _playlist.entry?.map((track) => {
+          if (track.albumId) {
+            track.albumId = `${_srcIndex}/${track.albumId}`;
+          }
+        });
 
         const playlist = new Playlist(this.context.player, {
           title: _playlist.name,
@@ -108,12 +130,12 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
           source: "arbitrary",
           author: {
             name: _playlist.owner ?? "Unknown User",
-            url: this.options.alternateUrl ?? this.options.url,
+            url: _credential.alternateUrl ?? _credential.url,
           },
           tracks: [],
-          id: _playlist.id,
+          id: `${_srcIndex}/${_playlist.id}`,
           url: joinURL(
-            this.options.alternateUrl ?? this.options.url,
+            _credential.alternateUrl ?? _credential.url,
             "/app/#/playlist",
             _playlist.id,
             "/show",
@@ -124,14 +146,14 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
         if (_playlist.entry?.length) {
           const _thumbnail = parseURL(
             (
-              await this.api.getCoverArt({
+              await _api.getCoverArt({
                 id: _playlist.entry[0].id,
               })
             ).url,
           );
 
-          if (this.options.alternateUrl) {
-            _thumbnail.host = parseURL(this.options.alternateUrl).host;
+          if (_credential.alternateUrl) {
+            _thumbnail.host = parseURL(_credential.alternateUrl).host;
           }
 
           playlist.thumbnail = stringifyParsedURL(_thumbnail);
@@ -145,17 +167,27 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
       }
 
       case "navidrome-album": {
+        const _srcIndex = this.findIndex(query);
+        if (_srcIndex < 0) return this.createResponse();
+        const _api = this.api[_srcIndex];
+        const _credential = this.options[_srcIndex];
         const _id = _url.hash.match(/album\/(.*)\/show/);
 
         if (!_id || !_id.length) return this.createResponse();
 
-        const results = await this.api.getAlbum({
+        const results = await _api.getAlbum({
           id: _id[1],
         });
 
         if (!results) return this.createResponse();
 
         const _album = results.album as AlbumWithSongsID3;
+
+        _album.song?.map((track) => {
+          if (track.albumId) {
+            track.albumId = `${_srcIndex}/${track.albumId}`;
+          }
+        });
 
         const playlist = new Playlist(this.context.player, {
           title: _album.name,
@@ -168,17 +200,17 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
             name: _album.artist ?? "Unknown Artist",
             url: _album.artistId
               ? joinURL(
-                  this.options.alternateUrl ?? this.options.url,
+                  _credential.alternateUrl ?? _credential.url,
                   "/app/#/artist",
                   _album.artistId,
                   "/show",
                 )
-              : this.options.alternateUrl ?? this.options.url,
+              : (_credential.alternateUrl ?? _credential.url),
           },
           tracks: [],
-          id: _album.id,
+          id: `${_srcIndex}/${_album.id}`,
           url: joinURL(
-            this.options.alternateUrl ?? this.options.url,
+            _credential.alternateUrl ?? _credential.url,
             "/app/#/album",
             _album.id,
             "/show",
@@ -189,14 +221,14 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
         if (_album.coverArt) {
           const _coverart = parseURL(
             (
-              await this.api.getCoverArt({
+              await _api.getCoverArt({
                 id: _album.coverArt,
               })
             ).url,
           );
 
-          if (this.options.alternateUrl) {
-            _coverart.host = parseURL(this.options.alternateUrl).host;
+          if (_credential.alternateUrl) {
+            _coverart.host = parseURL(_credential.alternateUrl).host;
           }
 
           playlist.thumbnail = stringifyParsedURL(_coverart);
@@ -212,21 +244,62 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
       }
 
       default: {
-        const results = await this.api.search3({
-          query,
-          artistCount: 0,
-          albumCount: 0,
-        });
-
-        if (!results || !results.searchResult3.song?.length)
+        const results = await Promise.allSettled(
+          this.api.map((_api) =>
+            _api.search3({
+              query,
+              artistCount: 0,
+              albumCount: 0,
+            }),
+          ),
+        );
+        if (!results) {
           return this.createResponse();
-
+        }
+        const existSong: { [key: string]: boolean } = {};
+        const fulfilledServer: number[] = [];
+        results.map((inp, srcIndex) => {
+          if (inp.status === "fulfilled") {
+            fulfilledServer.push(srcIndex);
+          }
+        });
+        const songs = results
+          .filter(
+            <T>(
+              input: PromiseSettledResult<T>,
+            ): input is PromiseFulfilledResult<T> =>
+              input.status === "fulfilled",
+          )
+          .map((inp) => inp.value.searchResult3)
+          .map((result, index) => {
+            if (!result.song?.length) {
+              return [];
+            }
+            result.song?.map((track) => {
+              if (track.albumId) {
+                track.albumId = `${fulfilledServer[index]}/${track.albumId}`;
+              }
+            });
+            return result.song;
+          })
+          .reduce((acc, curr) => [acc, curr].flat(1))
+          .filter((song) => {
+            const artist = song.artist ?? "Unknown Artist";
+            const album = song.album ?? "Unknown Album";
+            const key = `${artist} - ${album} - ${song.title}`;
+            if (key in existSong) {
+              return false;
+            }
+            existSong[key] = true;
+            return true;
+          });
+        if (songs.length <= 0) {
+          return this.createResponse();
+        }
         return this.createResponse(
           null,
           await Promise.all(
-            results.searchResult3.song.map((song) =>
-              this.extractSong(song, context),
-            ),
+            songs.map((song) => this.extractSong(song, context)),
           ),
         );
       }
@@ -242,7 +315,8 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
       throw new Error("Cannot connect to API");
     }
 
-    const stream = await this.api.stream({
+    const _api = this.api[this.findIndex(track.url)];
+    const stream = await _api.stream({
       id: track.metadata?.id,
       format: "aac",
     });
@@ -259,7 +333,8 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
       return this.createResponse();
     }
 
-    const results = await this.api.getSimilarSongs2({
+    const _api = this.api[this.findIndex(track.url)];
+    const results = await _api.getSimilarSongs2({
       id: track.metadata.id,
       count: 5,
     });
@@ -283,11 +358,19 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
       throw new Error("Cannot connect to API");
     }
 
+    const _parsedAlbumId = song.albumId?.split("/") || [];
+    if (_parsedAlbumId.length < 2) {
+      throw new Error(`Invalid album id ${song.albumId}`);
+    }
+    const _srcIndex = Number.parseInt(_parsedAlbumId[0]);
+    const _albumId = _parsedAlbumId[1];
+    const _api = this.api[_srcIndex];
+    const _credential = this.options[_srcIndex];
     const url = song.albumId
       ? joinURL(
-          this.options.alternateUrl ?? this.options.url,
+          _credential.alternateUrl ?? _credential.url,
           "/app/#/album",
-          song.albumId,
+          _albumId,
           "/show",
           song.id.substring(1, 5),
         )
@@ -308,14 +391,14 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption> {
     if (song.coverArt) {
       const _coverart = parseURL(
         (
-          await this.api.getCoverArt({
+          await _api.getCoverArt({
             id: song.coverArt,
           })
         ).url,
       );
 
-      if (this.options.alternateUrl) {
-        _coverart.host = parseURL(this.options.alternateUrl).host;
+      if (_credential.alternateUrl) {
+        _coverart.host = parseURL(_credential.alternateUrl).host;
       }
 
       track.thumbnail = stringifyParsedURL(_coverart);
