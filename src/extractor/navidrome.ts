@@ -292,7 +292,8 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption[]> {
             }
             existSong[key] = true;
             return true;
-          });
+          })
+          .slice(0, 10);
         if (songs.length <= 0) {
           return this.createResponse();
         }
