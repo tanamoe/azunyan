@@ -319,7 +319,7 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption[]> {
     const _api = this.api[this.findIndex(track.url)];
     const stream = await _api.stream({
       id: track.metadata?.id,
-      format: "aac",
+      format: "ogg",
     });
 
     if (!stream) {
