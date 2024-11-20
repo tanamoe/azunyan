@@ -11,7 +11,7 @@ WORKDIR /app
 RUN bun install --frozen-lockfile
 RUN bun run build
 
-FROM node:20.18.0 as image
+FROM node:20.18.1 as image
 
 # deps: install runtime dependencies
 RUN apt update
