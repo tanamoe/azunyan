@@ -21,7 +21,7 @@
     "node": ">=20.14.0"
   },
   "dependencies": {
-    "@discord-player/extractor": "^4.5.1",
+    "@discord-player/extractor": "^7.0.0",
     "@iamtraction/google-translate": "github:iamtraction/google-translate",
     "@types/turndown": "^5.0.5",
     "cheerio": "^1.0.0",
