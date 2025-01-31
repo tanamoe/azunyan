@@ -709,3 +709,5 @@ FodyWeavers.xsd
 build/
 music/
 app.js
+
+.direnv/
