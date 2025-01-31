@@ -212,6 +212,7 @@ async function buildPost(
     if (_media) {
       for (const media of _media) {
         // embed only video < 10mb
+        console.log(media);
         if (media.size >= 10_000_000) {
           videos.push(
             options.spoiler
@@ -221,7 +222,7 @@ async function buildPost(
         } else {
           attachments.push(
             new AttachmentBuilder(media.url, {
-              name: `${parseFilename(media.url, { strict: true })}.jpeg`,
+              name: `${parseFilename(media.url, { strict: true })}`,
             }).setSpoiler(options.spoiler),
           );
         }
