@@ -11,9 +11,9 @@ import SubsonicAPI, {
   type AlbumWithSongsID3,
   type PlaylistWithSongs,
   type Child,
-  SearchResult3,
 } from "subsonic-api";
 import { joinURL, parseURL, stringifyParsedURL } from "ufo";
+import { logger } from "../lib/logger.js";
 
 type NavidromeOption = {
   url: string;
@@ -36,17 +36,25 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption[]> {
       "navidrome-playlist",
       "navidrome-album",
     ];
-    this.api = this.options.map((credential) => {
-      const { url, username, password } = credential;
+    this.api = await Promise.all(
+      this.options.map(async (credential) => {
+        const { url, username, password } = credential;
 
-      return new SubsonicAPI({
-        url,
-        auth: {
-          username,
-          password,
-        },
-      });
-    });
+        const client = new SubsonicAPI({
+          url,
+          auth: {
+            username,
+            password,
+          },
+        });
+
+        const session = await client.navidromeSession();
+
+        logger.success(`Authenticated to ${url} with user ${session.name}`);
+
+        return client;
+      }),
+    );
   }
 
   async deactivate(): Promise<void> {
@@ -319,7 +327,7 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption[]> {
     const _api = this.api[this.findIndex(track.url)];
     const stream = await _api.stream({
       id: track.metadata?.id,
-      format: "ogg",
+      format: "aac",
     });
 
     if (!stream) {
