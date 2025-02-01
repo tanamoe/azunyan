@@ -34,7 +34,7 @@ export const repeatCommand = new SlashCommand(
     }
     await interaction.deferReply();
 
-    const queue = useQueue(interaction.guild.id);
+    const queue = useQueue();
     if (!queue) {
       await interaction.editReply("Hình như nhạc đang không chơi..?~");
       return null;

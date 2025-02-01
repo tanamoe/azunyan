@@ -13,7 +13,7 @@ export const stopCommand = new SlashCommand(
       return new Error("Invalid interaction");
     }
 
-    const queue = useQueue(interaction.guild.id);
+    const queue = useQueue();
 
     if (!queue) {
       await interaction.editReply("Hình như nhạc đang không chơi..?~");

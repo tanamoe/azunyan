@@ -4,9 +4,15 @@ import {
   SoundCloudExtractor,
   SpotifyExtractor,
 } from "@discord-player/extractor";
-import { Player } from "discord-player";
+import { Player, useMainPlayer } from "discord-player";
 import { YoutubeiExtractor } from "discord-player-youtubei";
-import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
+import {
+  ActivityType,
+  Client,
+  Events,
+  GatewayIntentBits,
+  Guild,
+} from "discord.js";
 import { decideCommand, tuyanhemCommand } from "./commands/misc/decide.js";
 import { gachaCommand } from "./commands/misc/gacha.js";
 import { infoCommand } from "./commands/misc/info.js";
@@ -68,24 +74,37 @@ const commands = [
   lyricsCommand,
 ];
 
+// Create the player client
+const player = new Player(client);
+
 await register(commands);
 
 // Handle interactions
 client.on(Events.InteractionCreate, async (interaction) => {
+  if (!interaction.guild) {
+    logger.error("Unsupported interaction");
+    return;
+  }
+
+  const player = useMainPlayer();
+  const data = {
+    guild: interaction.guild,
+  };
+
   if (interaction.isChatInputCommand()) {
     const command = commands.find(
       (command) => command.data.name === interaction.commandName,
     );
 
     if (!command) {
-      logger.error(
-        `Không tìm thấy lệnh ${interaction.commandName} nyaaaaahttps://music.chong-arisu.id.vn/~`,
-      );
+      logger.error(`Không tìm thấy lệnh ${interaction.commandName}~`);
       return;
     }
 
     try {
-      await (command as SlashCommand).execute(interaction);
+      await player.context.provide(data, () =>
+        (command as SlashCommand).execute(interaction),
+      );
     } catch (e) {
       logger.error(e);
     }
@@ -99,7 +118,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     );
 
     if (!command) {
-      logger.error(`Không tìm thấy lệnh ${interaction.commandName} nyaaaaa~`);
+      logger.error(`Không tìm thấy lệnh ${interaction.commandName}~`);
       return;
     }
 
@@ -118,12 +137,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
     );
 
     if (!command) {
-      logger.error(`Không tìm thấy lệnh ${interaction.commandName} nyaaaaa~`);
+      logger.error(`Không tìm thấy lệnh ${interaction.commandName}~`);
       return;
     }
 
     try {
-      await (command as ContextMenuCommand).execute(interaction);
+      await player.context.provide(data, () =>
+        (command as ContextMenuCommand).execute(interaction),
+      );
     } catch (e) {
       logger.error(e);
     }
@@ -131,9 +152,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return;
   }
 });
-
-// Create the player client
-const player = new Player(client);
 
 if (
   process.env.NAVIDROME_CLIENT_COUNT &&

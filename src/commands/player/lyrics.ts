@@ -48,7 +48,7 @@ export const lyricsCommand = new SlashCommand(
     const embed = new EmbedBuilder();
 
     const player = useMainPlayer();
-    const queue = useQueue(interaction.guild.id);
+    const queue = useQueue();
     const track = queue?.currentTrack;
     const member = interaction.member as GuildMember;
 
