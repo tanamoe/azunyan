@@ -28,7 +28,7 @@ export const queueCommand = new SlashCommand(
       return new Error("Invalid interaction");
     }
 
-    const queue = useQueue(interaction.guild.id);
+    const queue = useQueue();
 
     if (!queue) {
       await interaction.editReply("Hình như nhạc đang không chơi..?~");
@@ -138,11 +138,13 @@ function buildEmbed(
     {
       name: "Sắp tới",
       value: orderedList(
-        tracks
-          .slice(page * 5, page * 5 + 5)
-          .map((track) =>
-            hyperlink(track.cleanTitle || track.title, track.url),
-          ),
+        tracks.length > 0
+          ? tracks
+              .slice(page * 5, page * 5 + 5)
+              .map((track) =>
+                hyperlink(track.cleanTitle || track.title, track.url),
+              )
+          : ["Trống"],
         page * 5 + 1,
       ),
     },
@@ -158,7 +160,7 @@ function buildEmbed(
     },
     {
       name: "Số lượng",
-      value: `${tracks.length} bài`,
+      value: `${tracks.length} bài - ${queue.durationFormatted}`,
       inline: true,
     },
   );
