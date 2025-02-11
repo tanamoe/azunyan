@@ -1,3 +1,4 @@
+import { ListenBrainzClient } from "@kellnerd/listenbrainz";
 import { SlashCommandBuilder } from "discord.js";
 import { scrobble } from "../../../index.js";
 import { SlashCommand } from "../../../model/command.js";
@@ -36,11 +37,21 @@ export const scrobbleCommand = new SlashCommand(
       if (interaction.options.getSubcommand() === "set") {
         const token = interaction.options.getString("token", true);
 
-        scrobble.setToken(interaction.user.id, token);
+        try {
+          const client = new ListenBrainzClient({ userToken: token });
+          const validate = await client.validateToken();
+          if (!validate) throw new Error("Invalid token");
 
-        await interaction.editReply(
-          "Cài đặt token ListenBrainz thành công! Nhạc sau khi chơi sẽ được scrobble lên tài khoản của bạn~!",
-        );
+          scrobble.setToken(interaction.user.id, token);
+
+          await interaction.editReply(
+            "Cài đặt token ListenBrainz thành công! Nhạc sau khi chơi sẽ được scrobble lên tài khoản của bạn~!",
+          );
+        } catch (e: unknown) {
+          await interaction.editReply(
+            "Token ListenBrainz không hợp lệ, vui lòng thử lại~~",
+          );
+        }
       } else if (interaction.options.getSubcommand() === "remove") {
         scrobble.removeToken(interaction.user.id);
         await interaction.editReply("Xóa token ListenBrainz thành công!");
