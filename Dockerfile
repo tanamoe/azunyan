@@ -1,4 +1,4 @@
-FROM oven/bun:1.2.2 as build
+FROM oven/bun:1.2.2 AS build
 
 RUN apt update
 RUN apt install -y python3 build-essential git
@@ -11,7 +11,7 @@ WORKDIR /app
 RUN bun install --frozen-lockfile
 RUN bun run build
 
-FROM node:20.18.3 as image
+FROM node:22.13.1 AS image
 
 # deps: install runtime dependencies
 RUN apt update
