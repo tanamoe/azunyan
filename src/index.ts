@@ -22,6 +22,7 @@ import { shuffleCommand } from "./commands/player/shuffle.js";
 import { skipCommand } from "./commands/player/skip.js";
 import { stopCommand } from "./commands/player/stop.js";
 import { artworkCommand } from "./commands/utility/artwork.js";
+import { blueskyCommand } from "./commands/utility/bluesky.js";
 import { instagramCommand } from "./commands/utility/instagram.js";
 import { pixivCommand } from "./commands/utility/pixiv.js";
 import { tiktokCommand } from "./commands/utility/tiktok.js";
@@ -60,6 +61,7 @@ const commands = [
   pixivCommand,
   instagramCommand,
   tiktokCommand,
+  blueskyCommand,
   // playback-related
   playCommand,
   queueCommand,
