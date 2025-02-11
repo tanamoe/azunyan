@@ -4,15 +4,10 @@ import {
   SoundCloudExtractor,
   SpotifyExtractor,
 } from "@discord-player/extractor";
+import { ListenBrainzClient } from "@kellnerd/listenbrainz";
 import { Player, useMainPlayer } from "discord-player";
 import { YoutubeiExtractor } from "discord-player-youtubei";
-import {
-  ActivityType,
-  Client,
-  Events,
-  GatewayIntentBits,
-  Guild,
-} from "discord.js";
+import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
 import { decideCommand, tuyanhemCommand } from "./commands/misc/decide.js";
 import { gachaCommand } from "./commands/misc/gacha.js";
 import { infoCommand } from "./commands/misc/info.js";
@@ -22,6 +17,7 @@ import { playCommand } from "./commands/player/play/command.js";
 import { playContextMenu } from "./commands/player/play/contextMenu.js";
 import { queueCommand } from "./commands/player/queue/command.js";
 import { repeatCommand } from "./commands/player/repeat.js";
+import { scrobbleCommand } from "./commands/player/scrobble/scrobble.js";
 import { shuffleCommand } from "./commands/player/shuffle.js";
 import { skipCommand } from "./commands/player/skip.js";
 import { stopCommand } from "./commands/player/stop.js";
@@ -33,6 +29,7 @@ import { twitterCommand, xCommand } from "./commands/utility/twitter.js";
 import { NavidromeExtractor } from "./extractor/navidrome.js";
 import { logger } from "./lib/logger.js";
 import { register } from "./lib/register.js";
+import { Scrobble } from "./lib/scrobble.js";
 import type {
   AutocompleteSlashCommand,
   ContextMenuCommand,
@@ -72,6 +69,7 @@ const commands = [
   stopCommand,
   playContextMenu,
   lyricsCommand,
+  scrobbleCommand,
 ];
 
 // Create the player client
@@ -174,15 +172,85 @@ player.extractors.register(AttachmentExtractor, {});
 player.extractors.register(AppleMusicExtractor, {});
 player.extractors.register(SoundCloudExtractor, {});
 
+export const scrobble = new Scrobble();
+
 logger.ready("Logged in and ready");
 
 // Start the bot
 client.login(DISCORD_TOKEN);
 
 // Misc stuff. TODO: might refactor into a file
-player.events.on("playerStart", (_, track) => {
+player.events.on("playerStart", (queue, track) => {
   // Emitted when the player starts to play a song
-  client.user?.setActivity(track.title, { type: ActivityType.Listening });
+  client.user?.setActivity(track.cleanTitle, { type: ActivityType.Listening });
+
+  if (!queue.channel?.members) return;
+
+  for (const [_, member] of queue.channel.members) {
+    const userToken = scrobble.getTokenFromUserId(member.id);
+
+    if (!userToken) return;
+
+    const client = new ListenBrainzClient({ userToken });
+    const { author: artist_name, cleanTitle: track_name } = track;
+    client
+      .playingNow({
+        artist_name,
+        track_name,
+        additional_info: {
+          recording_mbid: (
+            track.metadata as { musicBrainzId: string | undefined }
+          )?.musicBrainzId,
+          origin_url: track.source === "youtube" ? track.url : undefined,
+        },
+      })
+      .then(() =>
+        logger.success(`Submitted playing now for user ${member.displayName}`),
+      )
+      .catch((e) =>
+        logger.warn(
+          `Cannot submit playing now for user ${member.displayName}, error: ${e}`,
+        ),
+      );
+  }
+});
+
+player.events.on("playerFinish", (queue, track) => {
+  // Emitted when the player finish playing a song
+  if (!queue.channel?.members) return;
+
+  for (const [_, member] of queue.channel.members) {
+    const userToken = scrobble.getTokenFromUserId(member.id);
+
+    if (!userToken) return;
+
+    const client = new ListenBrainzClient({ userToken });
+    const { author: artist_name, cleanTitle: track_name } = track;
+    client
+      .listen(
+        {
+          artist_name,
+          track_name,
+          additional_info: {
+            recording_mbid: (
+              track.metadata as { musicBrainzId: string | undefined }
+            )?.musicBrainzId,
+            origin_url: track.source === "youtube" ? track.url : undefined,
+          },
+        },
+        Math.floor((Date.now() - track.durationMS) / 1000),
+      )
+      .then(() =>
+        logger.success(`Submitted listen for user ${member.displayName}`),
+      )
+      .catch((e) =>
+        logger.warn(
+          `Cannot submit listen for user ${member.displayName}, error: ${e}`,
+        ),
+      );
+  }
+
+  client.user?.setActivity(track.cleanTitle, { type: ActivityType.Listening });
 });
 
 player.events.on("emptyQueue", () => {
