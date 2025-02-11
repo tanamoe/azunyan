@@ -188,49 +188,18 @@ player.events.on("playerStart", (queue, track) => {
 
   if (!queue.channel?.members) return;
 
-  for (const [_, member] of queue.channel.members) {
-    const userToken = scrobble.getTokenFromUserId(member.id);
+  for (const [id, member] of queue.channel.members) {
+    const userToken = scrobble.getTokenFromUserId(id);
 
     if (!userToken) return;
 
-    const client = new ListenBrainzClient({ userToken });
-    const { author: artist_name, cleanTitle: track_name } = track;
-    client
-      .playingNow({
-        artist_name,
-        track_name,
-        additional_info: {
-          recording_mbid: (
-            track.metadata as { musicBrainzId: string | undefined }
-          )?.musicBrainzId,
-          origin_url: track.source === "youtube" ? track.url : undefined,
-        },
-      })
-      .then(() =>
-        logger.success(`Submitted playing now for user ${member.displayName}`),
-      )
-      .catch((e) =>
-        logger.warn(
-          `Cannot submit playing now for user ${member.displayName}, error: ${e}`,
-        ),
-      );
-  }
-});
+    try {
+      const client = new ListenBrainzClient({ userToken });
 
-player.events.on("playerFinish", (queue, track) => {
-  // Emitted when the player finish playing a song
-  if (!queue.channel?.members) return;
+      const { author: artist_name, cleanTitle: track_name } = track;
 
-  for (const [_, member] of queue.channel.members) {
-    const userToken = scrobble.getTokenFromUserId(member.id);
-
-    if (!userToken) return;
-
-    const client = new ListenBrainzClient({ userToken });
-    const { author: artist_name, cleanTitle: track_name } = track;
-    client
-      .listen(
-        {
+      client
+        .playingNow({
           artist_name,
           track_name,
           additional_info: {
@@ -239,17 +208,60 @@ player.events.on("playerFinish", (queue, track) => {
             )?.musicBrainzId,
             origin_url: track.source === "youtube" ? track.url : undefined,
           },
-        },
-        Math.floor((Date.now() - track.durationMS) / 1000),
-      )
-      .then(() =>
-        logger.success(`Submitted listen for user ${member.displayName}`),
-      )
-      .catch((e) =>
-        logger.warn(
-          `Cannot submit listen for user ${member.displayName}, error: ${e}`,
-        ),
-      );
+        })
+        .then(() =>
+          logger.success(
+            `Submitted playing now for user ${member.displayName}`,
+          ),
+        )
+        .catch((e) =>
+          logger.warn(
+            `Cannot submit playing now for user ${member.displayName}, error: ${e}`,
+          ),
+        );
+    } catch (e: unknown) {
+      logger.error(e);
+    }
+  }
+});
+
+player.events.on("playerFinish", (queue, track) => {
+  // Emitted when the player finish playing a song
+  if (!queue.channel?.members) return;
+
+  for (const [id, member] of queue.channel.members) {
+    const userToken = scrobble.getTokenFromUserId(id);
+
+    if (!userToken) return;
+
+    try {
+      const client = new ListenBrainzClient({ userToken });
+      const { author: artist_name, cleanTitle: track_name } = track;
+      client
+        .listen(
+          {
+            artist_name,
+            track_name,
+            additional_info: {
+              recording_mbid: (
+                track.metadata as { musicBrainzId: string | undefined }
+              )?.musicBrainzId,
+              origin_url: track.source === "youtube" ? track.url : undefined,
+            },
+          },
+          Math.floor((Date.now() - track.durationMS) / 1000),
+        )
+        .then(() =>
+          logger.success(`Submitted listen for user ${member.displayName}`),
+        )
+        .catch((e) =>
+          logger.warn(
+            `Cannot submit listen for user ${member.displayName}, error: ${e}`,
+          ),
+        );
+    } catch (e: unknown) {
+      logger.error(e);
+    }
   }
 
   client.user?.setActivity(track.cleanTitle, { type: ActivityType.Listening });

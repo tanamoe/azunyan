@@ -20,7 +20,7 @@ export class Scrobble {
   setToken(userId: string, token: string): boolean {
     const statement = this.#db
       .prepare(
-        "INSERT INTO listenbrainz (user_id, token) VALUES (@userId, @token)",
+        "INSERT INTO listenbrainz (user_id, token) VALUES (@userId, @token) ON CONFLICT (user_id) DO UPDATE SET token=excluded.token",
       )
       .run({ userId, token });
 
