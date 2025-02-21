@@ -16,6 +16,7 @@ import { lyricsCommand } from "./commands/player/lyrics.js";
 import { playCommand } from "./commands/player/play/command.js";
 import { playContextMenu } from "./commands/player/play/contextMenu.js";
 import { queueCommand } from "./commands/player/queue/command.js";
+import { randomCommand } from "./commands/player/random.js";
 import { repeatCommand } from "./commands/player/repeat.js";
 import { scrobbleCommand } from "./commands/player/scrobble/scrobble.js";
 import { shuffleCommand } from "./commands/player/shuffle.js";
@@ -72,6 +73,7 @@ const commands = [
   playContextMenu,
   lyricsCommand,
   scrobbleCommand,
+  randomCommand,
 ];
 
 // Create the player client
