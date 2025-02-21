@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   BaseExtractor,
   type ExtractorInfo,
@@ -22,6 +23,8 @@ type NavidromeOption = {
   alternateUrl?: string;
 };
 
+export const NAVIDROME_RANDOM_SEARCH = "NAVIDROME_RANDOM_SEARCH";
+
 export class NavidromeExtractor extends BaseExtractor<NavidromeOption[]> {
   static identifier = "navidrome-extrator" as const;
   private api: SubsonicAPI[] | null = null;
@@ -35,6 +38,7 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption[]> {
       "navidrome-search-playlist",
       "navidrome-playlist",
       "navidrome-album",
+      "navidrome-random",
     ];
     this.api = await Promise.all(
       this.options.map(async (credential) => {
@@ -104,7 +108,10 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption[]> {
       context.protocol = "navidrome-album";
     } else if (_url.hash.includes("playlist")) {
       context.protocol = "navidrome-playlist";
+    } else if (_url.pathname.includes(NAVIDROME_RANDOM_SEARCH)) {
+      context.protocol = "navidrome-random";
     }
+
     switch (context.protocol) {
       case "navidrome-playlist": {
         const _srcIndex = this.findIndex(query);
@@ -247,6 +254,87 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption[]> {
             _album.song?.map((song) => this.extractSong(song, context)),
           );
         }
+
+        return this.createResponse(playlist, playlist.tracks);
+      }
+
+      case "navidrome-random": {
+        const results = await Promise.allSettled(
+          this.api.map((_api) =>
+            _api.getRandomSongs({
+              size: Number.parseInt(_url.pathname.split("/").at(-1) ?? "0") / 2,
+            }),
+          ),
+        );
+        if (!results) {
+          return this.createResponse();
+        }
+
+        const existSong: { [key: string]: boolean } = {};
+        const fulfilledServer: number[] = [];
+        results.map((inp, srcIndex) => {
+          if (inp.status === "fulfilled") {
+            fulfilledServer.push(srcIndex);
+          }
+        });
+        const songs = results
+          .filter(
+            <T>(
+              input: PromiseSettledResult<T>,
+            ): input is PromiseFulfilledResult<T> =>
+              input.status === "fulfilled",
+          )
+          .map((inp) => inp.value.randomSongs)
+          .map((result, index) => {
+            if (!result.song?.length) {
+              return [];
+            }
+            result.song?.map((track) => {
+              if (track.albumId) {
+                track.albumId = `${fulfilledServer[index]}/${track.albumId}`;
+              }
+            });
+            return result.song;
+          })
+          .reduce((acc, curr) => [acc, curr].flat(1))
+          .filter((song) => {
+            const artist = song.artist ?? "Unknown Artist";
+            const album = song.album ?? "Unknown Album";
+            const key = `${artist} - ${album} - ${song.title}`;
+            if (key in existSong) {
+              return false;
+            }
+            existSong[key] = true;
+            return true;
+          })
+          // https://stackoverflow.com/a/46545530
+          .map((value) => ({ value, sort: Math.random() }))
+          .sort((a, b) => a.sort - b.sort)
+          .map(({ value }) => value);
+
+        if (songs.length <= 0) {
+          return this.createResponse();
+        }
+
+        const playlist = new Playlist(this.context.player, {
+          title: "カフェラテ、カフェモカ、カプチーノ！",
+          thumbnail:
+            "https://raw.githubusercontent.com/navidrome/navidrome/master/resources/logo-192x192.png",
+          type: "album",
+          description: "カフェラテ、カフェモカ、カプチーノ！",
+          source: "arbitrary",
+          author: {
+            name: this.api[0].baseURL(),
+            url: this.api[0].baseURL(),
+          },
+          tracks: [],
+          id: randomUUID(),
+          url: randomUUID(),
+        });
+
+        playlist.tracks = await Promise.all(
+          songs.map((song) => this.extractSong(song, context)),
+        );
 
         return this.createResponse(playlist, playlist.tracks);
       }
