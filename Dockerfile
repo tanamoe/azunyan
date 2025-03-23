@@ -1,13 +1,14 @@
 FROM oven/bun:1.2.5 AS build
 
 RUN apt update
-RUN apt install -y python3 build-essential git
+RUN apt install -y python3 build-essential git 
 
 # copy dirs
 COPY . /app
 WORKDIR /app
 
 # install the dependencies
+RUN bun install -g prettier
 RUN bun install --frozen-lockfile
 RUN bun run build
 
