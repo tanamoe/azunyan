@@ -44,7 +44,6 @@
     "mediaplex",
     "better-sqlite3",
     "bufferutil",
-    "discord-player-youtubei",
   ],
   "packages": {
     "@asamuzakjp/css-color": ["@asamuzakjp/css-color@3.1.1", "", { "dependencies": { "@csstools/css-calc": "^2.1.2", "@csstools/css-color-parser": "^3.0.8", "@csstools/css-parser-algorithms": "^3.0.4", "@csstools/css-tokenizer": "^3.0.3", "lru-cache": "^10.4.3" } }, "sha512-hpRD68SV2OMcZCsrbdkccTw5FXjNDLo5OuqSHyHZfwweGsDWZwDJ2+gONyNAbazZclobMirACLw0lk8WVxIqxA=="],

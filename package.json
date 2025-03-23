@@ -58,7 +58,6 @@
     "better-sqlite3",
     "bindings",
     "bufferutil",
-    "discord-player-youtubei",
     "esbuild",
     "mediaplex"
   ]
