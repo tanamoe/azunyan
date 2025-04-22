@@ -32,7 +32,7 @@
     "bgutils-js": "^3.2.0",
     "cheerio": "^1.0.0",
     "consola": "^3.4.0",
-    "discord-api-types": "^0.37.119",
+    "discord-api-types": "^0.38.0",
     "discord-player": "^7.1.0",
     "discord-player-youtubei": "github:retrouser955/discord-player-youtubei",
     "discord.js": "^14.18.0",
