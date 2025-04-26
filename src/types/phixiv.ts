@@ -7,4 +7,8 @@ export type PhixivResponse = {
   url: string;
   author_name: string;
   author_id: string;
+  is_ugoira: boolean;
+  illust_id: string;
+  language: string;
+  profile_image_url: string;
 };
