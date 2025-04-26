@@ -3,20 +3,24 @@ import { logger } from "../../lib/logger.js";
 import translate from "@iamtraction/google-translate";
 import {
   ActionRowBuilder,
-  AttachmentBuilder,
   type ButtonBuilder,
-  type ButtonInteraction,
-  type CacheType,
   type ChatInputCommandInteraction,
-  type Collection,
-  type CollectorFilter,
-  type ComponentType,
-  EmbedBuilder,
-  type InteractionResponse,
+  ComponentType,
+  ContainerBuilder,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
+  MessageFlags,
+  SectionBuilder,
+  SeparatorBuilder,
   SlashCommandBuilder,
+  TextDisplayBuilder,
+  ThumbnailBuilder,
+  blockQuote,
+  bold,
   escapeMarkdown,
   hyperlink,
-  spoiler,
+  subtext,
+  time,
 } from "discord.js";
 import { joinURL, parseFilename } from "ufo";
 import { RemoveButton } from "../../components/removeButton.js";
@@ -33,6 +37,8 @@ export type TwitterCommandOptions = {
   media: boolean;
   spoiler: boolean;
   translate?: string | null;
+  meta: boolean;
+  quote: boolean;
 };
 
 export const twitterCommand = new SlashCommand(
@@ -47,40 +53,28 @@ export const twitterCommand = new SlashCommand(
       option
         .setName("url")
         .setDescription("Đường dẫn Twitter~")
-        .setDescriptionLocalizations({
-          vi: "Đường dẫn Twitter~",
-          "en-US": "Twitter URL~",
-        })
+        .setDescriptionLocalization("en-US", "Twitter URL~")
         .setRequired(true),
     )
     .addBooleanOption((option) =>
       option
         .setName("tweet")
         .setDescription("Nhúng Tweet? (mặc định: có)")
-        .setDescriptionLocalizations({
-          vi: "Nhúng Tweet? (mặc định: có)",
-          "en-US": "Embed Tweet? (default: yes)",
-        })
+        .setDescriptionLocalization("en-US", "Embed Tweet? (default: yes)")
         .setRequired(false),
     )
     .addBooleanOption((option) =>
       option
         .setName("media")
         .setDescription("Gửi hình ảnh/video? (mặc định: có)")
-        .setDescriptionLocalizations({
-          vi: "Gửi hình ảnh/video? (mặc định: có)",
-          "en-US": "Send media? (default: yes)",
-        })
+        .setDescriptionLocalization("en-US", "Send media? (default: yes)")
         .setRequired(false),
     )
     .addStringOption((option) =>
       option
         .setName("translate")
         .setDescription("Dịch Tweet? (mặc định: không)")
-        .setDescriptionLocalizations({
-          vi: "Dịch Tweet? (mặc định: không)",
-          "en-US": "Translate Tweet? (default: no)",
-        })
+        .setDescriptionLocalization("en-US", "Translate Tweet? (default: no)")
         .setChoices(
           { name: "English", value: "en" },
           { name: "Tiếng Việt", value: "vi" },
@@ -91,10 +85,22 @@ export const twitterCommand = new SlashCommand(
       option
         .setName("spoiler")
         .setDescription("Đăng media dưới dạng spoiler? (mặc định: không)")
-        .setDescriptionLocalizations({
-          vi: "Đăng media dưới dạng spoiler? (mặc định: không)",
-          "en-US": "Spoiler-tagged media? (default: no)",
-        })
+        .setDescriptionLocalization(
+          "en-US",
+          "Spoiler-tagged media? (default: no)",
+        )
+        .setRequired(false),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("meta")
+        .setDescription(
+          "Hiển thị thông tin phụ bên dưới bài đăng? (mặc định: không)",
+        )
+        .setDescriptionLocalization(
+          "en-US",
+          "Shows additional information under post? (default: no)",
+        )
         .setRequired(false),
     ),
   async (interaction) => {
@@ -111,6 +117,8 @@ export const twitterCommand = new SlashCommand(
       media: interaction.options.getBoolean("media", false) ?? true,
       translate: interaction.options.getString("translate", false),
       spoiler: interaction.options.getBoolean("spoiler", false) ?? false,
+      meta: interaction.options.getBoolean("meta", false) ?? false,
+      quote: interaction.options.getBoolean("quote", false) ?? true,
     };
 
     const [normalizedUrl, normalizeErr] = Twitter.normalizeUrl(url);
@@ -125,50 +133,89 @@ export const twitterCommand = new SlashCommand(
 
     const [data, err] = await Twitter.extractTweet(normalizedUrl);
 
-    try {
-      if (err != null) {
-        throw err;
-      }
-      if (data == null) {
-        if (interaction.locale.match(/en.*/)) {
-          interaction.editReply("Cannot find Tweet :<");
-        } else {
-          interaction.editReply("Không tìm thấy Tweet :<");
-        }
-        return null;
+    if (err != null) {
+      onError(err, interaction);
+    }
+
+    if (data == null) {
+      try {
+        const message = interaction.locale.match(/en.*/)
+          ? "Cannot find Tweet"
+          : "Không tìm thấy Tweet :<";
+
+        await interaction.editReply(message);
+      } catch (e) {
+        await onError(e, interaction);
       }
 
-      const { embeds, attachments, videos } = await buildTweet(data, options);
+      return null;
+    }
 
+    const { container } = await buildTweet(data, options);
+
+    if (options.meta) {
       meta.setComponents(
         ReplyCount(data.replies),
         RetweetCount(data.retweets),
         LikeCount(data.likes),
         SourceButton(data.url, interaction.locale),
       );
-      actions.addComponents(RemoveButton(interaction.locale));
 
-      if (data.quote) {
-        actions.addComponents(QuotetweetButton());
-      }
+      container.addActionRowComponents(meta);
+    }
 
+    container.setSpoiler(options.spoiler);
+
+    actions.addComponents(RemoveButton(interaction.locale));
+
+    try {
       await interaction.editReply({
-        files: attachments,
-        embeds: embeds,
-        content: !options.tweet ? videos.join("\n") : undefined,
-        components: [meta, actions],
+        components: [container, actions],
+        flags: MessageFlags.IsComponentsV2,
       });
-
-      if (options.tweet && videos.length > 0) {
-        await interaction.followUp({
-          content: videos.join(" "),
-        });
-      }
     } catch (e) {
       await onError(e, interaction);
     }
 
-    await collectRequest(interaction, response, meta, actions, data, options);
+    const collector = response.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+      time: 60_000,
+    });
+
+    collector.on("collect", async (i) => {
+      if (i.user.id !== interaction.user.id) {
+        try {
+          await i.reply({
+            content: "Chỉ chủ bài đăng dùng hành động~",
+            ephemeral: true,
+          });
+        } catch (e) {
+          console.error(e);
+        }
+
+        return;
+      }
+
+      if (i.customId === "remove") {
+        try {
+          await interaction.deleteReply();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+
+    collector.on("end", async () => {
+      try {
+        await interaction.editReply({
+          components: [container],
+          flags: MessageFlags.IsComponentsV2,
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
     return null;
   },
 );
@@ -176,49 +223,34 @@ export const twitterCommand = new SlashCommand(
 export const xCommand = new SlashCommand(
   new SlashCommandBuilder()
     .setName("x")
-    .setDescription("Embed a Tweet with advanced options~")
-    .setDescriptionLocalizations({
-      vi: "Gửi Tweet với một số tùy chọn nâng cao~",
-      "en-US": "Embed a Tweet with advanced options~",
-    })
+    .setDescription("Gửi Tweet với một số tùy chọn nâng cao~")
+    .setDescriptionLocalization("en-US", "Embed a Tweet with advanced options~")
     .addStringOption((option) =>
       option
         .setName("url")
         .setDescription("Đường dẫn Twitter~")
-        .setDescriptionLocalizations({
-          vi: "Đường dẫn Twitter~",
-          "en-US": "Twitter URL~",
-        })
+        .setDescriptionLocalization("en-US", "Twitter URL~")
         .setRequired(true),
     )
     .addBooleanOption((option) =>
       option
         .setName("tweet")
         .setDescription("Nhúng Tweet? (mặc định: có)")
-        .setDescriptionLocalizations({
-          vi: "Nhúng Tweet? (mặc định: có)",
-          "en-US": "Embed Tweet? (default: yes)",
-        })
+        .setDescriptionLocalization("en-US", "Embed Tweet? (default: yes)")
         .setRequired(false),
     )
     .addBooleanOption((option) =>
       option
         .setName("media")
         .setDescription("Gửi hình ảnh/video? (mặc định: có)")
-        .setDescriptionLocalizations({
-          vi: "Gửi hình ảnh/video? (mặc định: có)",
-          "en-US": "Send media? (default: yes)",
-        })
+        .setDescriptionLocalization("en-US", "Send media? (default: yes)")
         .setRequired(false),
     )
     .addStringOption((option) =>
       option
         .setName("translate")
         .setDescription("Dịch Tweet? (mặc định: không)")
-        .setDescriptionLocalizations({
-          vi: "Dịch Tweet? (mặc định: không)",
-          "en-US": "Translate Tweet? (default: no)",
-        })
+        .setDescriptionLocalization("en-US", "Translate Tweet? (default: no)")
         .setChoices(
           { name: "English", value: "en" },
           { name: "Tiếng Việt", value: "vi" },
@@ -229,10 +261,22 @@ export const xCommand = new SlashCommand(
       option
         .setName("spoiler")
         .setDescription("Đăng media dưới dạng spoiler? (mặc định: không)")
-        .setDescriptionLocalizations({
-          vi: "Đăng media dưới dạng spoiler? (mặc định: không)",
-          "en-US": "Spoiler-tagged media? (default: no)",
-        })
+        .setDescriptionLocalization(
+          "en-US",
+          "Spoiler-tagged media? (default: no)",
+        )
+        .setRequired(false),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("meta")
+        .setDescription(
+          "Hiển thị thông tin phụ bên dưới bài đăng? (mặc định: không)",
+        )
+        .setDescriptionLocalization(
+          "en-US",
+          "Shows additional information under post? (default: no)",
+        )
         .setRequired(false),
     ),
   twitterCommand.execute,
@@ -265,171 +309,123 @@ async function buildTweet(
   data: ExtractorTweet,
   options: TwitterCommandOptions,
 ) {
-  const embeds: EmbedBuilder[] = [];
-  const attachments: AttachmentBuilder[] = [];
-  const videos: string[] = [];
+  const container = new ContainerBuilder();
 
   // build embed tweet
   if (options.tweet) {
-    const embed = new EmbedBuilder();
-    await embedTweet(embed, data);
+    const section = await embedTweet(data, options.translate);
 
-    if (options.translate) {
-      await translateEmbed(embed, options.translate);
-    }
-
-    embeds.push(embed);
+    container.addSectionComponents(section);
   }
 
+  // build media
   if (options.media) {
-    const _videos = data.media?.videos;
-    const _photos = data.media?.photos;
+    const gallery = await embedMedia(data);
 
-    // build video
-    if (_videos) {
-      for (const media of _videos) {
-        // embed only video < 3 mins
-        if (media.duration >= 180_000) {
-          videos.push(
-            options.spoiler
-              ? spoiler(hyperlink("Media", media.url))
-              : hyperlink("Media", media.url),
-          );
-        } else {
-          attachments.push(
-            new AttachmentBuilder(media.url, {
-              name: parseFilename(media.url, { strict: true }),
-            }).setSpoiler(options.spoiler),
-          );
-        }
-      }
-    }
-
-    // build attachments
-    if (_photos) {
-      for (const media of _photos) {
-        attachments.push(
-          new AttachmentBuilder(media.url, {
-            name: parseFilename(media.url, { strict: true }),
-          })
-            .setDescription(media.altText)
-            .setSpoiler(options.spoiler),
-        );
-      }
+    if (gallery) {
+      container.addMediaGalleryComponents(gallery);
     }
   }
 
-  return { embeds, attachments, videos };
-}
+  // build quote tweet if exists
+  if (options.quote && data.quote) {
+    const separator = new SeparatorBuilder().setSpacing(1).setDivider(false);
 
-async function embedTweet(embed: EmbedBuilder, data: ExtractorTweet) {
-  embed.setAuthor({
-    name: `${data.author.name} (@${data.author.screen_name})`,
-    iconURL: data.author.avatar_url,
-    url: joinURL("https://twitter.com/", data.author.screen_name),
-  });
-  embed.setColor("#1da0f2");
-  embed.setURL(data.url);
-  embed.setFooter({
-    text: "Twitter",
-    iconURL: "https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
-  });
-  embed.setTimestamp(new Date(data.created_timestamp * 1000));
-  if (data.text !== "") {
-    embed.setDescription(escapeMarkdown(data.text));
+    container.addSeparatorComponents(separator);
+
+    const section = await embedTweet(
+      data.quote,
+      options.translate,
+      options.quote,
+    );
+
+    container.addSectionComponents(section);
+
+    const gallery = await embedMedia(data.quote);
+
+    if (gallery) {
+      container.addMediaGalleryComponents(gallery);
+    }
   }
+
+  return { container };
 }
 
-async function translateEmbed(embed: EmbedBuilder, translateLanguage: string) {
-  if (!embed.data.description || embed.data.description === "") {
-    return;
-  }
-  const {
-    text: translated,
-    from: {
-      language: { iso },
-    },
-  } = await translate(embed.data.description, { to: translateLanguage });
-
-  const languageName = new Intl.DisplayNames([translateLanguage], {
-    type: "language",
-  }).of(iso);
-
-  const translateInfo =
-    translateLanguage === "en"
-      ? `(Translated from ${languageName} by Google)\n\n`
-      : translateLanguage === "vi"
-        ? `(Dịch từ ${languageName} bởi Google)\n\n`
-        : "";
-  embed.setDescription(translateInfo + translated);
-}
-
-async function collectRequest(
-  interaction: ChatInputCommandInteraction,
-  response: InteractionResponse<boolean>,
-  meta: ActionRowBuilder<ButtonBuilder>,
-  actions: ActionRowBuilder<ButtonBuilder>,
-  data?: ExtractorTweet | null,
-  options?: TwitterCommandOptions | null,
+async function embedTweet(
+  data: ExtractorTweet,
+  translateLanguage?: string | null,
+  quote?: boolean,
 ) {
-  const collectorFilter: CollectorFilter<
-    [
-      ButtonInteraction<CacheType>,
-      Collection<string, ButtonInteraction<CacheType>>,
-    ]
-  > = async (i) => {
-    if (i.user.id !== interaction.user.id)
-      await i.reply({
-        content: "Chỉ chủ bài đăng dùng hành động~",
-        ephemeral: true,
-      });
+  const section = new SectionBuilder();
 
-    return i.user.id === interaction.user.id;
-  };
+  const thumbnail = new ThumbnailBuilder();
+  const textDisplay = new TextDisplayBuilder();
 
-  try {
-    const confirmation =
-      await response.awaitMessageComponent<ComponentType.Button>({
-        filter: collectorFilter,
-        time: 60_000,
-      });
+  thumbnail.setURL(data.author.avatar_url);
+  thumbnail.setDescription(data.author.name);
 
-    if (confirmation.customId === "remove") {
-      console.log(confirmation.customId);
-      await interaction.deleteReply();
-    }
+  const authorAndTime = `@${data.author.screen_name} · ${time(data.created_timestamp)}`;
 
-    if (confirmation.customId === "quotetweet" && data?.quote && options) {
-      const meta = new ActionRowBuilder<ButtonBuilder>();
+  textDisplay.setContent(
+    `${hyperlink(bold(data.author.name), joinURL("https://x.com/", data.author.screen_name))}
+${subtext(authorAndTime)}`,
+  );
 
-      const { embeds, attachments, videos } = await buildTweet(
-        data.quote,
-        options,
-      );
+  if (translateLanguage) {
+    const {
+      text: translated,
+      from: {
+        language: { iso },
+      },
+    } = await translate(data.text, { to: translateLanguage });
 
-      meta.setComponents(
-        ReplyCount(data.quote.replies),
-        RetweetCount(data.quote.retweets),
-        LikeCount(data.quote.likes),
-        SourceButton(data.quote.url, interaction.locale),
-      );
+    const languageName = new Intl.DisplayNames([translateLanguage], {
+      type: "language",
+    }).of(iso);
 
-      await interaction.followUp({
-        files: attachments,
-        embeds: embeds,
-        content: !options.tweet ? videos.join("\n") : undefined,
-        components: [meta],
-      });
+    const translatedBy = `Translated from ${languageName} by Google`;
 
-      if (options.tweet && videos.length > 0) {
-        await interaction.followUp({
-          content: videos.join("\n"),
-        });
-      }
-    }
-  } catch (e) {
-    await interaction.editReply({
-      components: [meta],
-    });
+    textDisplay.setContent(`${textDisplay.data.content}
+
+${escapeMarkdown(translated)}
+
+${subtext(translatedBy)}
+`);
+  } else {
+    textDisplay.setContent(`${textDisplay.data.content}
+
+${escapeMarkdown(data.text)}
+`);
   }
+
+  if (quote) {
+    textDisplay.setContent(blockQuote(textDisplay.data.content ?? ""));
+  }
+
+  section.setThumbnailAccessory(thumbnail);
+
+  section.addTextDisplayComponents(textDisplay);
+
+  return section;
+}
+
+async function embedMedia(data: ExtractorTweet) {
+  const gallery = new MediaGalleryBuilder();
+
+  const videos = data.media?.videos?.map((video) =>
+    new MediaGalleryItemBuilder().setURL(video.url),
+  );
+  const photos = data.media?.photos?.map((photo) =>
+    new MediaGalleryItemBuilder().setURL(photo.url),
+  );
+
+  if (videos) {
+    gallery.addItems(videos);
+  }
+
+  if (photos) {
+    gallery.addItems(photos);
+  }
+
+  return gallery.items.length > 0 ? gallery : undefined;
 }
