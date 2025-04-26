@@ -8,8 +8,20 @@ import {
   type Collection,
   type CollectorFilter,
   type ComponentType,
+  ContainerBuilder,
   EmbedBuilder,
+  HeadingLevel,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
+  MessageFlags,
+  SectionBuilder,
   SlashCommandBuilder,
+  TextDisplayBuilder,
+  ThumbnailBuilder,
+  bold,
+  heading,
+  hyperlink,
+  subtext,
 } from "discord.js";
 import { ofetch } from "ofetch";
 import { joinURL, normalizeURL, parseFilename, parseURL } from "ufo";
@@ -17,6 +29,10 @@ import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
 import type { PhixivResponse } from "../../types/phixiv.js";
 import { parseHTMLtoMarkdown } from "../../utils/markdown.js";
+
+enum PixivButton {
+  DELETE = 10,
+}
 
 export const pixivCommand = new SlashCommand(
   new SlashCommandBuilder()
@@ -48,9 +64,7 @@ export const pixivCommand = new SlashCommand(
     const response = await interaction.deferReply();
 
     // create objects
-    const embeds = [];
-    const attachments = [];
-    const actionRow = new ActionRowBuilder<ButtonBuilder>();
+    const actions = new ActionRowBuilder<ButtonBuilder>();
 
     // assigning query
     const url = parseURL(interaction.options.getString("url", true));
@@ -71,6 +85,9 @@ export const pixivCommand = new SlashCommand(
       return null;
     }
 
+    const container = new ContainerBuilder();
+    container.setAccentColor(0x0096fa);
+
     try {
       const res = await ofetch<PhixivResponse>(
         "https://www.phixiv.net/api/info",
@@ -82,66 +99,78 @@ export const pixivCommand = new SlashCommand(
       );
 
       if (sendDetails) {
-        const embed = new EmbedBuilder();
+        const section = new SectionBuilder();
 
-        embed.setAuthor({
-          name: `${res.author_name}`,
-          url: joinURL("https://www.pixiv.net/users/", res.author_id),
-        });
-        embed.setColor("#0096FA");
-        embed.setTitle(res.title);
-        embed.setURL(res.url);
-        embed.addFields([
-          {
-            name: "Tags",
-            value: res.tags
-              .map(
-                (tag) =>
-                  `[${tag}](${normalizeURL(
-                    joinURL(
-                      "https://www.pixiv.net/tags",
-                      tag.replace("#", ""),
-                      "/artworks",
-                    ),
-                  )})`,
-              )
-              .join(" "),
-          },
-        ]);
-        embed.setFooter({
-          text: "Pixiv",
-          iconURL:
-            "https://s.pximg.net/common/images/apple-touch-icon.png?20200601",
-        });
+        const thumbnail = new ThumbnailBuilder();
+        const textDisplay = new TextDisplayBuilder();
+
+        thumbnail.setURL(res.profile_image_url);
+        thumbnail.setDescription(res.author_name);
+
+        textDisplay.setContent(
+          `${hyperlink(bold(res.author_name), joinURL("https://www.pixiv.net/users/", res.author_id))}
+${heading(res.title, HeadingLevel.Two)}
+`,
+        );
 
         if (res.description)
-          embed.setDescription(parseHTMLtoMarkdown(res.description));
+          textDisplay.setContent(`${textDisplay.data.content}
 
-        embeds.push(embed);
+${parseHTMLtoMarkdown(res.description)}`);
+
+        if (res.tags) {
+          const tags = res.tags
+            .map(
+              (tag) =>
+                `[${tag}](${normalizeURL(
+                  joinURL(
+                    "https://www.pixiv.net/tags",
+                    tag.replace("#", ""),
+                    "/artworks",
+                  ),
+                )})`,
+            )
+            .join(" ");
+
+          textDisplay.setContent(`${textDisplay.data.content}
+
+${tags}`);
+        }
+
+        if (res.ai_generated) {
+          textDisplay.setContent(`${textDisplay.data.content}
+
+${subtext("AI Generated Content")}`);
+        }
+
+        section.setThumbnailAccessory(thumbnail);
+        section.addTextDisplayComponents(textDisplay);
+
+        container.addSectionComponents(section);
       }
 
       if (sendAll) {
-        for (const image of res.image_proxy_urls.slice(0, 10)) {
-          attachments.push(
-            new AttachmentBuilder(image, {
-              name: parseFilename(image, { strict: true }),
-            }).setSpoiler(isSpoiler),
+        for (let i = 0; i < res.image_proxy_urls.length; i += 10) {
+          const gallery = new MediaGalleryBuilder();
+          const chunk = res.image_proxy_urls.slice(i, i + 10);
+          gallery.addItems(
+            chunk.map((image) =>
+              new MediaGalleryItemBuilder().setURL(image).setSpoiler(isSpoiler),
+            ),
           );
+          container.addMediaGalleryComponents(gallery);
         }
       } else {
-        attachments.push(
-          new AttachmentBuilder(res.image_proxy_urls[0], {
-            name: parseFilename(res.image_proxy_urls[0], { strict: true }),
-          }).setSpoiler(isSpoiler),
+        container.addMediaGalleryComponents(
+          new MediaGalleryBuilder().addItems(
+            new MediaGalleryItemBuilder().setURL(res.image_proxy_urls[0]),
+          ),
         );
       }
 
-      actionRow.setComponents(
+      actions.setComponents(
         new ButtonBuilder()
-          .setLabel("Nguồn")
-          .setStyle(ButtonStyle.Link)
-          .setURL(res.url),
-        new ButtonBuilder()
+          .setId(PixivButton.DELETE)
           .setCustomId("remove")
           .setLabel("Xóa")
           .setStyle(ButtonStyle.Danger)
@@ -149,17 +178,13 @@ export const pixivCommand = new SlashCommand(
       );
 
       await interaction.editReply({
-        content: res.ai_generated
-          ? "## <:kanna_investigate:1095204804483096586> AI generated content"
-          : undefined,
-        files: attachments,
-        embeds: embeds,
-        components: [actionRow],
+        components: [container, actions],
+        flags: MessageFlags.IsComponentsV2,
       });
     } catch (e) {
       logger.error(e);
 
-      actionRow.setComponents(
+      actions.setComponents(
         new ButtonBuilder()
           .setCustomId("remove")
           .setLabel("Xóa")
@@ -169,7 +194,7 @@ export const pixivCommand = new SlashCommand(
 
       await interaction.editReply({
         content: "Có chuyện gì vừa xảy ra TwT...",
-        components: [actionRow],
+        components: [actions],
       });
     }
 
@@ -199,12 +224,13 @@ export const pixivCommand = new SlashCommand(
         await interaction.deleteReply();
       }
     } catch (e) {
-      for (const button of actionRow.components) {
-        if (button.data.label === "Xóa") button.setDisabled(true);
+      for (const component of actions.components) {
+        if (component.data.id === PixivButton.DELETE)
+          component.setDisabled(true);
       }
 
       await interaction.editReply({
-        components: [actionRow],
+        components: [container],
       });
     }
 
