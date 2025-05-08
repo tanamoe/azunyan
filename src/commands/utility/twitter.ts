@@ -102,6 +102,16 @@ export const twitterCommand = new SlashCommand(
           "Shows additional information under post? (default: no)",
         )
         .setRequired(false),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("quote")
+        .setDescription("Hiển thị bài đã được quote? (mặc định: không)")
+        .setDescriptionLocalization(
+          "en-US",
+          "Shows quote under post? (default: no)",
+        )
+        .setRequired(false),
     ),
   async (interaction) => {
     // default to defer the reply
@@ -117,8 +127,8 @@ export const twitterCommand = new SlashCommand(
       media: interaction.options.getBoolean("media", false) ?? true,
       translate: interaction.options.getString("translate", false),
       spoiler: interaction.options.getBoolean("spoiler", false) ?? false,
-      meta: interaction.options.getBoolean("meta", false) ?? false,
-      quote: interaction.options.getBoolean("quote", false) ?? true,
+      meta: interaction.options.getBoolean("meta", false) ?? true,
+      quote: interaction.options.getBoolean("quote", false) ?? false,
     };
 
     const [normalizedUrl, normalizeErr] = Twitter.normalizeUrl(url);
@@ -276,6 +286,16 @@ export const xCommand = new SlashCommand(
         .setDescriptionLocalization(
           "en-US",
           "Shows additional information under post? (default: no)",
+        )
+        .setRequired(false),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("quote")
+        .setDescription("Hiển thị bài đã được quote? (mặc định: không)")
+        .setDescriptionLocalization(
+          "en-US",
+          "Shows quote under post? (default: no)",
         )
         .setRequired(false),
     ),
