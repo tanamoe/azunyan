@@ -1,4 +1,4 @@
-FROM oven/bun:1.2.12 AS build
+FROM oven/bun:1.2.13 AS build
 
 RUN apt update
 RUN apt install -y python3 build-essential git 
