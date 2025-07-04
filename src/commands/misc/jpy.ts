@@ -8,8 +8,8 @@ import {
   type CollectorFilter,
   type ComponentType,
   EmbedBuilder,
-  SlashCommandBuilder,
   hyperlink,
+  SlashCommandBuilder,
 } from "discord.js";
 import { ofetch } from "ofetch";
 import { logger } from "../../lib/logger.js";

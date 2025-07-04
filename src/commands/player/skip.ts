@@ -1,10 +1,10 @@
-import { useQueue } from "discord-player";
 import {
-  SlashCommandBuilder,
   hideLinkEmbed,
   hyperlink,
   orderedList,
+  SlashCommandBuilder,
 } from "discord.js";
+import { useQueue } from "discord-player";
 import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
 

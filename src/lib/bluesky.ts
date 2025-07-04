@@ -43,8 +43,8 @@ export class Bluesky {
     const hdlres = new HandleResolver({});
 
     try {
-      const profileHandle = path.match(/profile\/([\w\d\-\.]+)/);
-      const postHandle = path.match(/post\/([\w\d\.]+)/);
+      const profileHandle = path.match(/profile\/([\w\d\-.]+)/);
+      const postHandle = path.match(/post\/([\w\d.]+)/);
 
       if (!profileHandle?.[1] || !postHandle?.[1]) {
         return Bluesky.extractError("Invalid URL");

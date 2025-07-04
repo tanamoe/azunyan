@@ -1,9 +1,9 @@
-import { useMainPlayer } from "discord-player";
 import {
   EmbedBuilder,
   type GuildMember,
   SlashCommandBuilder,
 } from "discord.js";
+import { useMainPlayer } from "discord-player";
 import { joinURL } from "ufo";
 import {
   NAVIDROME_RANDOM_SEARCH,

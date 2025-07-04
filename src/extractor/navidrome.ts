@@ -10,8 +10,8 @@ import {
 } from "discord-player";
 import SubsonicAPI, {
   type AlbumWithSongsID3,
-  type PlaylistWithSongs,
   type Child,
+  type PlaylistWithSongs,
 } from "subsonic-api";
 import { joinURL, parseURL, stringifyParsedURL } from "ufo";
 import { logger } from "../lib/logger.js";
@@ -415,7 +415,7 @@ export class NavidromeExtractor extends BaseExtractor<NavidromeOption[]> {
     const _api = this.api[this.findIndex(track.url)];
     const stream = await _api.stream({
       id: track.metadata?.id,
-      format: "ogg",
+      format: "mp3",
     });
 
     if (!stream) {

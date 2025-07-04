@@ -1,10 +1,10 @@
-import { useMainPlayer } from "discord-player";
 import {
   EmbedBuilder,
   type GuildMember,
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "discord.js";
+import { useMainPlayer } from "discord-player";
 import type { Child } from "subsonic-api";
 import { parseQuery, parseURL, stringifyParsedURL, stringifyQuery } from "ufo";
 import { NavidromeExtractor } from "../../../extractor/navidrome.js";

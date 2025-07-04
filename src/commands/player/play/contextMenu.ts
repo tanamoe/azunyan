@@ -1,10 +1,10 @@
-import { useMainPlayer } from "discord-player";
 import {
   ApplicationCommandType,
   ContextMenuCommandBuilder,
   EmbedBuilder,
   type GuildMember,
 } from "discord.js";
+import { useMainPlayer } from "discord-player";
 import { logger } from "../../../lib/logger.js";
 import { ContextMenuCommand } from "../../../model/command.js";
 

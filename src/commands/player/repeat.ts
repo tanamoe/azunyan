@@ -1,9 +1,9 @@
-import { QueueRepeatMode, useQueue } from "discord-player";
 import {
+  bold,
   SlashCommandBuilder,
   SlashCommandStringOption,
-  bold,
 } from "discord.js";
+import { QueueRepeatMode, useQueue } from "discord-player";
 import { SlashCommand } from "../../model/command.js";
 
 export const repeatCommand = new SlashCommand(

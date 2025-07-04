@@ -1,5 +1,5 @@
-import { useQueue } from "discord-player";
 import { SlashCommandBuilder } from "discord.js";
+import { useQueue } from "discord-player";
 import { SlashCommand } from "../../model/command.js";
 
 export const stopCommand = new SlashCommand(
