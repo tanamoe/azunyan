@@ -1,19 +1,19 @@
 import {
-  type GuildQueue,
-  QueueRepeatMode,
-  type Track,
-  useQueue,
-} from "discord-player";
-import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
   EmbedBuilder,
-  SlashCommandBuilder,
   hyperlink,
   orderedList,
+  SlashCommandBuilder,
 } from "discord.js";
+import {
+  type GuildQueue,
+  QueueRepeatMode,
+  type Track,
+  useQueue,
+} from "discord-player";
 import { SlashCommand } from "../../../model/command.js";
 
 export const queueCommand = new SlashCommand(

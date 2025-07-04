@@ -1,5 +1,3 @@
-import { logger } from "../../lib/logger.js";
-
 import translate from "@iamtraction/google-translate";
 import {
   ActionRowBuilder,
@@ -12,9 +10,9 @@ import {
   type CollectorFilter,
   type ComponentType,
   EmbedBuilder,
+  escapeMarkdown,
   type InteractionResponse,
   SlashCommandBuilder,
-  escapeMarkdown,
 } from "discord.js";
 import { joinURL } from "ufo";
 import { RemoveButton } from "../../components/removeButton.js";
@@ -22,6 +20,7 @@ import { SourceButton } from "../../components/sourceButton.js";
 import { CommentCount } from "../../components/tiktok/commentCount.js";
 import { LikeCount } from "../../components/tiktok/likeCount.js";
 import { SavedCount } from "../../components/tiktok/savedCount.js";
+import { logger } from "../../lib/logger.js";
 import { type ExtractorPost, TikTok } from "../../lib/tiktok.js";
 import { SlashCommand } from "../../model/command.js";
 

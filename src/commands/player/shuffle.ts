@@ -1,9 +1,9 @@
-import { useQueue } from "discord-player";
 import {
+  bold,
   SlashCommandBooleanOption,
   SlashCommandBuilder,
-  bold,
 } from "discord.js";
+import { useQueue } from "discord-player";
 import { SlashCommand } from "../../model/command.js";
 
 export const shuffleCommand = new SlashCommand(

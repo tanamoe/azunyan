@@ -14,41 +14,41 @@
   "type": "module",
   "lint-staged": {
     "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-      "biome check --apply --organize-imports-enabled=true --no-errors-on-unmatched"
+      "biome check --write --no-errors-on-unmatched"
     ]
   },
   "engines": {
     "node": ">=20.14.0"
   },
   "dependencies": {
-    "@atproto/api": "^0.15.6",
+    "@atproto/api": "^0.15.23",
     "@atproto/identity": "^0.4.8",
     "@discord-player/extractor": "^7.1.0",
     "@iamtraction/google-translate": "github:iamtraction/google-translate",
     "@kellnerd/listenbrainz": "npm:@jsr/kellnerd__listenbrainz",
     "@types/better-sqlite3": "^7.6.13",
     "@types/turndown": "^5.0.5",
-    "better-sqlite3": "^11.10.0",
+    "better-sqlite3": "^12.2.0",
     "bgutils-js": "^3.2.0",
-    "cheerio": "^1.0.0",
+    "cheerio": "^1.1.0",
     "consola": "^3.4.2",
-    "discord-api-types": "^0.38.4",
+    "discord-api-types": "^0.38.15",
     "discord-player": "^7.1.0",
     "discord-player-youtubei": "github:retrouser955/discord-player-youtubei",
-    "discord.js": "^14.19.3",
+    "discord.js": "^14.21.0",
     "ofetch": "^1.4.1",
     "subsonic-api": "^3.1.2",
     "turndown": "^7.2.0",
     "ufo": "^1.6.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.0.6",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@types/node": "^22.15.17",
-    "esbuild": "^0.25.4",
+    "@types/node": "^24.0.10",
+    "esbuild": "^0.25.5",
     "husky": "^9.1.7",
-    "lint-staged": "^16.0.0",
+    "lint-staged": "^16.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },

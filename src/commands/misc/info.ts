@@ -3,13 +3,13 @@ import {
   ButtonBuilder,
   type ButtonInteraction,
   ButtonStyle,
+  bold,
   type CacheType,
   type Collection,
   type CollectorFilter,
   type ComponentType,
   EmbedBuilder,
   SlashCommandBuilder,
-  bold,
 } from "discord.js";
 import { ofetch } from "ofetch";
 import { logger } from "../../lib/logger.js";

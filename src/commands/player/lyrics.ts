@@ -1,10 +1,10 @@
-import { useMainPlayer, useQueue } from "discord-player";
 import {
   EmbedBuilder,
   type GuildMember,
-  SlashCommandBuilder,
   inlineCode,
+  SlashCommandBuilder,
 } from "discord.js";
+import { useMainPlayer, useQueue } from "discord-player";
 import { SlashCommand } from "../../model/command.js";
 
 export const lyricsCommand = new SlashCommand(

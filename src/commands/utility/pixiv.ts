@@ -4,6 +4,7 @@ import {
   ButtonBuilder,
   type ButtonInteraction,
   ButtonStyle,
+  bold,
   type CacheType,
   type Collection,
   type CollectorFilter,
@@ -11,17 +12,16 @@ import {
   ContainerBuilder,
   EmbedBuilder,
   HeadingLevel,
+  heading,
+  hyperlink,
   MediaGalleryBuilder,
   MediaGalleryItemBuilder,
   MessageFlags,
   SectionBuilder,
   SlashCommandBuilder,
+  subtext,
   TextDisplayBuilder,
   ThumbnailBuilder,
-  bold,
-  heading,
-  hyperlink,
-  subtext,
 } from "discord.js";
 import { ofetch } from "ofetch";
 import { joinURL, normalizeURL, parseFilename, parseURL } from "ufo";

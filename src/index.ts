@@ -5,9 +5,9 @@ import {
   SpotifyExtractor,
 } from "@discord-player/extractor";
 import { ListenBrainzClient } from "@kellnerd/listenbrainz";
+import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
 import { Player, useMainPlayer } from "discord-player";
 import { YoutubeiExtractor } from "discord-player-youtubei";
-import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
 import { decideCommand, tuyanhemCommand } from "./commands/misc/decide.js";
 import { gachaCommand } from "./commands/misc/gacha.js";
 import { infoCommand } from "./commands/misc/info.js";
