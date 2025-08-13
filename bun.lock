@@ -4,7 +4,7 @@
     "": {
       "name": "azunyan",
       "dependencies": {
-        "@atproto/api": "^0.15.23",
+        "@atproto/api": "^0.16.0",
         "@atproto/identity": "^0.4.8",
         "@discord-player/extractor": "^7.1.0",
         "@iamtraction/google-translate": "github:iamtraction/google-translate",
@@ -49,7 +49,7 @@
   "packages": {
     "@asamuzakjp/css-color": ["@asamuzakjp/css-color@3.1.1", "", { "dependencies": { "@csstools/css-calc": "^2.1.2", "@csstools/css-color-parser": "^3.0.8", "@csstools/css-parser-algorithms": "^3.0.4", "@csstools/css-tokenizer": "^3.0.3", "lru-cache": "^10.4.3" } }, "sha512-hpRD68SV2OMcZCsrbdkccTw5FXjNDLo5OuqSHyHZfwweGsDWZwDJ2+gONyNAbazZclobMirACLw0lk8WVxIqxA=="],
 
-    "@atproto/api": ["@atproto/api@0.15.23", "", { "dependencies": { "@atproto/common-web": "^0.4.2", "@atproto/lexicon": "^0.4.11", "@atproto/syntax": "^0.4.0", "@atproto/xrpc": "^0.7.0", "await-lock": "^2.2.2", "multiformats": "^9.9.0", "tlds": "^1.234.0", "zod": "^3.23.8" } }, "sha512-qrXMPDs8xUugQyNxU5jm5xlhfx60SzOIzmHkZkI7ExYQFjX6juCabR9t8LofIUSiZKRY1PcU4QUFyhQIsjFuVg=="],
+    "@atproto/api": ["@atproto/api@0.16.2", "", { "dependencies": { "@atproto/common-web": "^0.4.2", "@atproto/lexicon": "^0.4.12", "@atproto/syntax": "^0.4.0", "@atproto/xrpc": "^0.7.1", "await-lock": "^2.2.2", "multiformats": "^9.9.0", "tlds": "^1.234.0", "zod": "^3.23.8" } }, "sha512-sSTg31J8ws8DNaoiizp+/uJideRxRaJsq+Nyl8rnSxGw0w3oCvoeRU19iRWh2t0jZEmiRJAGkveGu23NKmPYEQ=="],
 
     "@atproto/common-web": ["@atproto/common-web@0.4.2", "", { "dependencies": { "graphemer": "^1.4.0", "multiformats": "^9.9.0", "uint8arrays": "3.0.0", "zod": "^3.23.8" } }, "sha512-vrXwGNoFGogodjQvJDxAeP3QbGtawgZute2ed1XdRO0wMixLk3qewtikZm06H259QDJVu6voKC5mubml+WgQUw=="],
 
@@ -57,11 +57,11 @@
 
     "@atproto/identity": ["@atproto/identity@0.4.8", "", { "dependencies": { "@atproto/common-web": "^0.4.2", "@atproto/crypto": "^0.4.4" } }, "sha512-Z0sLnJ87SeNdAifT+rqpgE1Rc3layMMW25gfWNo4u40RGuRODbdfAZlTwBSU2r+Vk45hU+iE+xeQspfednCEnA=="],
 
-    "@atproto/lexicon": ["@atproto/lexicon@0.4.11", "", { "dependencies": { "@atproto/common-web": "^0.4.2", "@atproto/syntax": "^0.4.0", "iso-datestring-validator": "^2.2.2", "multiformats": "^9.9.0", "zod": "^3.23.8" } }, "sha512-btefdnvNz2Ao2I+qbmj0F06HC8IlrM/IBz6qOBS50r0S6uDf5tOO+Mv2tSVdimFkdzyDdLtBI1sV36ONxz2cOw=="],
+    "@atproto/lexicon": ["@atproto/lexicon@0.4.12", "", { "dependencies": { "@atproto/common-web": "^0.4.2", "@atproto/syntax": "^0.4.0", "iso-datestring-validator": "^2.2.2", "multiformats": "^9.9.0", "zod": "^3.23.8" } }, "sha512-fcEvEQ1GpQYF5igZ4IZjPWEoWVpsEF22L9RexxLS3ptfySXLflEyH384e7HITzO/73McDeaJx3lqHIuqn9ulnw=="],
 
     "@atproto/syntax": ["@atproto/syntax@0.4.0", "", {}, "sha512-b9y5ceHS8YKOfP3mdKmwAx5yVj9294UN7FG2XzP6V5aKUdFazEYRnR9m5n5ZQFKa3GNvz7de9guZCJ/sUTcOAA=="],
 
-    "@atproto/xrpc": ["@atproto/xrpc@0.7.0", "", { "dependencies": { "@atproto/lexicon": "^0.4.11", "zod": "^3.23.8" } }, "sha512-SfhP9dGx2qclaScFDb58Jnrmim5nk4geZXCqg6sB0I/KZhZEkr9iIx1hLCp+sxkIfEsmEJjeWO4B0rjUIJW5cw=="],
+    "@atproto/xrpc": ["@atproto/xrpc@0.7.1", "", { "dependencies": { "@atproto/lexicon": "^0.4.12", "zod": "^3.23.8" } }, "sha512-ANHEzlskYlMEdH18m+Itp3a8d0pEJao2qoDybDoMupTnoeNkya4VKIaOgAi6ERQnqatBBZyn9asW+7rJmSt/8g=="],
 
     "@babel/code-frame": ["@babel/code-frame@7.23.5", "", { "dependencies": { "@babel/highlight": "^7.23.4", "chalk": "^2.4.2" } }, "sha512-CgH3s1a96LipHCmSUmYFPwY7MNx8C3avkq7i4Wl3cfa662ldtUe4VM1TPXX70pfmrlWTb6jLqTYrZyT2ZTJBgA=="],
 
