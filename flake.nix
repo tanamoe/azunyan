@@ -9,7 +9,7 @@
   }: let
     overlays = [
       (final: prev: rec {
-        nodeVersion = 22;
+        nodeVersion = 24;
 
         nodejs = prev."nodejs_${toString nodeVersion}";
       })
