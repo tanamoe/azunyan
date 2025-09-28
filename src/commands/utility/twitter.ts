@@ -20,19 +20,24 @@ import {
   ThumbnailBuilder,
   time,
 } from "discord.js";
-import { joinURL, parseFilename } from "ufo";
+import { joinURL } from "ufo";
 import { RemoveButton } from "../../components/removeButton.js";
 import { SourceButton } from "../../components/sourceButton.js";
 import { LikeCount } from "../../components/twitter/likeCount.js";
-import { QuotetweetButton } from "../../components/twitter/quotetweetButton.js";
 import { ReplyCount } from "../../components/twitter/replyCount.js";
 import { RetweetCount } from "../../components/twitter/retweetCount.js";
 import { logger } from "../../lib/logger.js";
 import { type ExtractorTweet, Twitter } from "../../lib/twitter.js";
 import { SlashCommand } from "../../model/command.js";
 
+export enum TweetEmbeddingContent {
+  Full = "full",
+  Partial = "partial",
+  MediaOnly = "media-only",
+}
+
 export type TwitterCommandOptions = {
-  tweet: boolean;
+  tweet: TweetEmbeddingContent;
   media: boolean;
   spoiler: boolean;
   translate?: string | null;
@@ -55,11 +60,19 @@ export const twitterCommand = new SlashCommand(
         .setDescriptionLocalization("en-US", "Twitter URL~")
         .setRequired(true),
     )
-    .addBooleanOption((option) =>
+    .addStringOption((option) =>
       option
         .setName("tweet")
-        .setDescription("Nhúng Tweet? (mặc định: có)")
-        .setDescriptionLocalization("en-US", "Embed Tweet? (default: yes)")
+        .setDescription("Nhúng Tweet? (mặc định: đầy đủ)")
+        .setDescriptionLocalization("en-US", "Embed Tweet? (default: full)")
+        .setChoices(
+          { name: "Full", value: TweetEmbeddingContent.Full },
+          {
+            name: "Partial (Artist and Media)",
+            value: TweetEmbeddingContent.Partial,
+          },
+          { name: "Media-only", value: TweetEmbeddingContent.MediaOnly },
+        )
         .setRequired(false),
     )
     .addBooleanOption((option) =>
@@ -122,7 +135,11 @@ export const twitterCommand = new SlashCommand(
     // assigning query
     const url = interaction.options.getString("url", true);
     const options: TwitterCommandOptions = {
-      tweet: interaction.options.getBoolean("tweet", false) ?? true,
+      tweet:
+        (interaction.options.getString(
+          "tweet",
+          false,
+        ) as TweetEmbeddingContent) ?? TweetEmbeddingContent.Full,
       media: interaction.options.getBoolean("media", false) ?? true,
       translate: interaction.options.getString("translate", false),
       spoiler: interaction.options.getBoolean("spoiler", false) ?? false,
@@ -330,11 +347,16 @@ async function buildTweet(
 ) {
   const container = new ContainerBuilder();
 
-  // build embed tweet
-  if (options.tweet) {
-    const section = await embedTweet(data, options.translate);
-
-    container.addSectionComponents(section);
+  switch (options.tweet) {
+    case TweetEmbeddingContent.Partial: {
+      const author = embedAuthor(data);
+      container.addTextDisplayComponents(author);
+      break;
+    }
+    case TweetEmbeddingContent.Full: {
+      const section = await embedTweet(data, options.translate);
+      container.addSectionComponents(section);
+    }
   }
 
   // build media
@@ -370,6 +392,19 @@ async function buildTweet(
   return { container };
 }
 
+function embedAuthor(data: ExtractorTweet) {
+  const textDisplay = new TextDisplayBuilder();
+
+  const authorAndTime = `@${data.author.screen_name} · ${time(data.created_timestamp)}`;
+
+  textDisplay.setContent(
+    `${hyperlink(bold(data.author.name), joinURL("https://x.com/", data.author.screen_name))}
+${subtext(authorAndTime)}`,
+  );
+
+  return textDisplay;
+}
+
 async function embedTweet(
   data: ExtractorTweet,
   translateLanguage?: string | null,
@@ -378,17 +413,11 @@ async function embedTweet(
   const section = new SectionBuilder();
 
   const thumbnail = new ThumbnailBuilder();
-  const textDisplay = new TextDisplayBuilder();
 
   thumbnail.setURL(data.author.avatar_url);
   thumbnail.setDescription(data.author.name);
 
-  const authorAndTime = `@${data.author.screen_name} · ${time(data.created_timestamp)}`;
-
-  textDisplay.setContent(
-    `${hyperlink(bold(data.author.name), joinURL("https://x.com/", data.author.screen_name))}
-${subtext(authorAndTime)}`,
-  );
+  const textDisplay = embedAuthor(data);
 
   if (translateLanguage) {
     const {
