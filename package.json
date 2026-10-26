@@ -29,7 +29,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/turndown": "^5.0.5",
     "better-sqlite3": "^12.2.0",
-    "bgutils-js": "^3.2.0",
+    "bgutils-js": "^4.0.0",
     "cheerio": "^1.1.2",
     "consola": "^3.4.2",
     "discord-api-types": "^0.38.21",
