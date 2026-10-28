@@ -23,6 +23,7 @@
   "dependencies": {
     "@atproto/api": "^0.29.5",
     "@atproto/identity": "^0.5.20",
+    "@iamtraction/google-translate": "^3.0.0",
     "@types/better-sqlite3": "^9.6.0",
     "@types/turndown": "^5.0.5",
     "better-sqlite3": "^13.0.3",

@@ -172,6 +172,9 @@ importers:
       '@atproto/identity':
         specifier: ^0.5.20
         version: 0.5.20
+      '@iamtraction/google-translate':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@types/better-sqlite3':
         specifier: ^9.6.0
         version: 9.6.0
@@ -623,6 +626,10 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@iamtraction/google-translate@3.0.0':
+    resolution: {integrity: sha512-j2b3ZU/c/qHsHPP2PPQt3vAEsfscSbpvpiI4t4l4ps+KrUEwqNBy5T2optNxn6tcV1mAY6t9J7RJzbILQUeq2Q==}
+    engines: {node: '>=22.19.0'}
 
   '@mixmark-io/domino@2.2.0':
     resolution: {integrity: sha512-Y28PR25bHXUg88kCV7nivXrP2Nj2RueZ3/l/jdx6J9f8J4nsEGcgX0Qe6lt7Pa+J79+kPiJU3LguR6O/6zrLOw==}
@@ -1593,6 +1600,10 @@ snapshots:
 
   '@esbuild/win32-x64@0.28.2':
     optional: true
+
+  '@iamtraction/google-translate@3.0.0':
+    dependencies:
+      undici: 8.12.3
 
   '@mixmark-io/domino@2.2.0': {}
 
