@@ -12,7 +12,7 @@ RUN bun install -g prettier
 RUN bun install --frozen-lockfile
 RUN bun run build
 
-FROM node:24 AS image
+FROM node:26 AS image
 
 # deps: install runtime dependencies
 RUN apt update
