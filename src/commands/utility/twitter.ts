@@ -1,4 +1,3 @@
-import translate from "@iamtraction/google-translate";
 import {
   ActionRowBuilder,
   type ButtonBuilder,
@@ -20,7 +19,6 @@ import {
   ThumbnailBuilder,
   time,
 } from "discord.js";
-import { joinURL } from "ufo";
 import { RemoveButton } from "../../components/removeButton.js";
 import { SourceButton } from "../../components/sourceButton.js";
 import { LikeCount } from "../../components/twitter/likeCount.js";
@@ -40,7 +38,6 @@ export type TwitterCommandOptions = {
   tweet: TweetEmbeddingContent;
   media: boolean;
   spoiler: boolean;
-  translate?: string | null;
   meta: boolean;
   quote: boolean;
 };
@@ -126,14 +123,13 @@ export const twitterCommand = new SlashCommand(
         .setRequired(false),
     ),
   async (interaction) => {
-    // default to defer the reply
-    const response = await interaction.deferReply();
-
     const meta = new ActionRowBuilder<ButtonBuilder>();
     const actions = new ActionRowBuilder<ButtonBuilder>();
 
     // assigning query
     const url = interaction.options.getString("url", true);
+    const language =
+      interaction.options.getString("translate", false) ?? undefined;
     const options: TwitterCommandOptions = {
       tweet:
         (interaction.options.getString(
@@ -141,7 +137,6 @@ export const twitterCommand = new SlashCommand(
           false,
         ) as TweetEmbeddingContent) ?? TweetEmbeddingContent.Full,
       media: interaction.options.getBoolean("media", false) ?? true,
-      translate: interaction.options.getString("translate", false),
       spoiler: interaction.options.getBoolean("spoiler", false) ?? false,
       meta: interaction.options.getBoolean("meta", false) ?? true,
       quote: interaction.options.getBoolean("quote", false) ?? false,
@@ -157,7 +152,7 @@ export const twitterCommand = new SlashCommand(
       return normalizeErr;
     }
 
-    const [data, err] = await Twitter.extractTweet(normalizedUrl);
+    const [data, err] = await Twitter.extractTweet(normalizedUrl, language);
 
     if (err != null) {
       onError(err, interaction);
@@ -194,14 +189,10 @@ export const twitterCommand = new SlashCommand(
 
     actions.addComponents(RemoveButton(interaction.locale));
 
-    try {
-      await interaction.editReply({
-        components: [container, actions],
-        flags: MessageFlags.IsComponentsV2,
-      });
-    } catch (e) {
-      await onError(e, interaction);
-    }
+    const response = await interaction.reply({
+      components: [container, actions],
+      flags: MessageFlags.IsComponentsV2,
+    });
 
     const collector = response.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -354,7 +345,7 @@ async function buildTweet(
       break;
     }
     case TweetEmbeddingContent.Full: {
-      const section = await embedTweet(data, options.translate);
+      const section = await embedTweet(data);
       container.addSectionComponents(section);
     }
   }
@@ -374,11 +365,7 @@ async function buildTweet(
 
     container.addSeparatorComponents(separator);
 
-    const section = await embedTweet(
-      data.quote,
-      options.translate,
-      options.quote,
-    );
+    const section = await embedTweet(data.quote, options.quote);
 
     container.addSectionComponents(section);
 
@@ -398,44 +385,37 @@ function embedAuthor(data: ExtractorTweet) {
   const authorAndTime = `@${data.author.screen_name} · ${time(data.created_timestamp)}`;
 
   textDisplay.setContent(
-    `${hyperlink(bold(data.author.name), joinURL("https://x.com/", data.author.screen_name))}
+    `${hyperlink(bold(data.author.name), data.author.url)}
 ${subtext(authorAndTime)}`,
   );
 
   return textDisplay;
 }
 
-async function embedTweet(
-  data: ExtractorTweet,
-  translateLanguage?: string | null,
-  quote?: boolean,
-) {
+async function embedTweet(data: ExtractorTweet, quote?: boolean) {
   const section = new SectionBuilder();
 
-  const thumbnail = new ThumbnailBuilder();
+  if (data.author.avatar_url) {
+    const thumbnail = new ThumbnailBuilder();
 
-  thumbnail.setURL(data.author.avatar_url);
-  thumbnail.setDescription(data.author.name);
+    thumbnail.setURL(data.author.avatar_url);
+    thumbnail.setDescription(data.author.name);
+
+    section.setThumbnailAccessory(thumbnail);
+  }
 
   const textDisplay = embedAuthor(data);
 
-  if (translateLanguage) {
-    const {
-      text: translated,
-      from: {
-        language: { iso },
-      },
-    } = await translate(data.text, { to: translateLanguage });
-
-    const languageName = new Intl.DisplayNames([translateLanguage], {
+  if (data.translation) {
+    const languageName = new Intl.DisplayNames([data.translation.target_lang], {
       type: "language",
-    }).of(iso);
+    }).of(data.translation.source_lang);
 
-    const translatedBy = `Translated from ${languageName} by Google`;
+    const translatedBy = `Translated from ${languageName} by ${data.translation.provider}`;
 
     textDisplay.setContent(`${textDisplay.data.content}
 
-${escapeMarkdown(translated)}
+${escapeMarkdown(data.translation.text)}
 
 ${subtext(translatedBy)}
 `);
@@ -449,8 +429,6 @@ ${escapeMarkdown(data.text)}
   if (quote) {
     textDisplay.setContent(blockQuote(textDisplay.data.content ?? ""));
   }
-
-  section.setThumbnailAccessory(thumbnail);
 
   section.addTextDisplayComponents(textDisplay);
 

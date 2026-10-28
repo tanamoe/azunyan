@@ -1,41 +1,63 @@
-import { HTTPError } from "discord.js";
-import { ofetch } from "ofetch";
+import createClient from "openapi-fetch";
 import { parseURL } from "ufo";
-import type {
-  FxTwitterPhoto,
-  FxTwitterResponse,
-  FxTwitterTweet,
-  FxTwitterUser,
-  FxTwitterVideo,
-} from "../types/fxtwitter.js";
-import type { VxTwitterResponse } from "../types/vxtwitter.js";
+import type { components, paths } from "./fxtwitter/v2.js";
 
-// helper
-type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+export interface ExtractorAuthor {
+  name: string;
+  screen_name: string;
+  avatar_url: string | null;
+  url: string;
+}
 
-export type ExtractorAuthor = Pick<
-  FxTwitterUser,
-  "screen_name" | "avatar_url" | "name"
->;
-export type ExtractorPhoto = FxTwitterPhoto;
-export type ExtractorVideo = Omit<FxTwitterVideo, "format" | "variants">;
-export type ExtractorTweet = Omit<
-  Optional<
-    FxTwitterTweet,
-    | "is_note_tweet"
-    | "twitter_card"
-    | "lang"
-    | "source"
-    | "replying_to"
-    | "replying_to_status"
-  >,
-  "author" | "media"
-> & {
+export interface ExtractorTranslation {
+  text: string;
+  source_lang: string;
+  target_lang: string;
+  provider: string;
+}
+
+export interface ExtractorTweet {
+  id: string;
+  url: string;
+  text: string;
+  created_at: string;
+  created_timestamp: number;
+
+  likes: number;
+  retweets: number;
+  replies: number;
+  views?: number | null;
+
+  quote?: ExtractorTweet;
+  translation?: ExtractorTranslation;
+
+  lang: string | null;
+  possibly_sensitive: boolean;
+
   author: ExtractorAuthor;
   media?: { photos?: ExtractorPhoto[]; videos?: ExtractorVideo[] };
-};
+}
+
+export interface ExtractorMedia {
+  type: string;
+  url: string;
+  width: number;
+  height: number;
+}
+
+export interface ExtractorPhoto extends ExtractorMedia {
+  type: "photo";
+  altText: string;
+}
+
+export interface ExtractorVideo extends ExtractorMedia {
+  type: "video" | "gif";
+  thumbnail_url: string;
+  duration: number;
+}
+
 export type ExtractorResponse = [ExtractorTweet | null, null] | [null, Error];
-type ExtractorFn = (path: string) => Promise<ExtractorResponse>;
+type ExtractorFn = (path: string, lang?: string) => Promise<ExtractorResponse>;
 
 export class Twitter {
   static normalizeUrl(path: string): [string, null] | ["", Error] {
@@ -51,17 +73,18 @@ export class Twitter {
     if (!supportedHosts.includes(url.host ?? "")) {
       return ["", new Error(`Unsupported url '${path}'`)];
     }
-    return [url.pathname, null];
+
+    return [url.pathname.slice(url.pathname.lastIndexOf("/") + 1), null];
   }
 
-  public static async extractTweet(path: string): Promise<ExtractorResponse> {
-    const extractors: ReadonlyArray<ExtractorFn> = [
-      Twitter.extractTweetViaFxTwitter,
-      Twitter.extractTweetViaVxTwitter,
-    ];
+  public static async extractTweet(
+    path: string,
+    lang?: string,
+  ): Promise<ExtractorResponse> {
+    const extractors: ReadonlyArray<ExtractorFn> = [extractFxTwitterV2];
     let latestError: Error | null = null;
     for (const extractor of extractors) {
-      const [tweet, err] = await extractor(path);
+      const [tweet, err] = await extractor(path, lang);
       if (err == null) {
         return [tweet, null];
       }
@@ -69,111 +92,86 @@ export class Twitter {
     }
     return [null, latestError];
   }
+}
 
-  private static async extractTweetViaVxTwitter(
-    path: string,
-  ): Promise<ExtractorResponse> {
-    try {
-      const data = await ofetch<VxTwitterResponse>(path, {
-        baseURL: "https://api.vxtwitter.com/",
-        responseType: "json",
-      });
+async function extractFxTwitterV2(
+  id: string,
+  lang?: string,
+): Promise<ExtractorResponse> {
+  const client = createClient<paths>({ baseUrl: "https://api.fxtwitter.com" });
 
-      const normalize = await Twitter.normalizeVxTwitter(data);
+  const { data, error } = await client.GET("/2/status/{id}", {
+    params: {
+      path: { id: id },
+      query: { lang: lang },
+    },
+  });
 
-      return [normalize, null];
-    } catch (e) {
-      return Twitter.extractError(e);
-    }
+  if (error) {
+    return [null, new Error("cannot fetch")];
   }
 
-  private static async extractTweetViaFxTwitter(
-    path: string,
-  ): Promise<ExtractorResponse> {
-    try {
-      const data = await ofetch<FxTwitterResponse>(path, {
-        baseURL: "https://api.fxtwitter.com/",
-        responseType: "json",
-      });
-
-      // TODO: https://github.com/FixTweet/FxTwitter/wiki/Status-Fetch-API
-      if (data.code > 500) {
-        return [null, new Error(data.message)];
-      }
-      if (data.code !== 200) {
-        return [null, null];
-      }
-
-      return [data.tweet, null];
-    } catch (e) {
-      return Twitter.extractError(e);
-    }
+  if (!data.status) {
+    return [null, new Error("empty response")];
   }
 
-  private static extractError(e: unknown): ExtractorResponse {
-    if (!(e instanceof HTTPError)) {
-      if (!(e instanceof Error)) {
-        return [null, new Error("Unknown error")];
-      }
-      return [null, e];
-    }
-    const status = e.status;
-    if (status > 500) {
-      return [null, e];
-    }
-    return [null, null];
-  }
+  return [
+    normalizeFxTwitterV2(
+      <components["schemas"]["APITwitterStatus"]>data.status,
+    ),
+    null,
+  ];
+}
 
-  private static async normalizeVxTwitter(data: VxTwitterResponse) {
-    const photos: ExtractorPhoto[] = [];
-    const videos: ExtractorVideo[] = [];
+function normalizeFxTwitterV2(
+  response: components["schemas"]["APITwitterStatus"],
+): ExtractorTweet {
+  const photos: ExtractorPhoto[] = [];
+  const videos: ExtractorVideo[] = [];
 
-    data.media_extended.forEach((media) => {
+  if (response.media.all) {
+    for (const media of response.media.all) {
       switch (media.type) {
-        case "image":
+        case "photo":
           photos.push({
             url: media.url,
-            width: media.size.width,
-            height: media.size.height,
-            altText: media.altText ?? "",
-            type: "photo",
+            width: media.width,
+            height: media.height,
+            altText: "",
+            type: media.type,
           });
           break;
-
         case "gif":
         case "video":
           videos.push({
             url: media.url,
-            thumbnail_url: media.thumbnail_url,
-            width: media.size.width,
-            height: media.size.height,
-            duration: media.duration_millis / 1000,
+            thumbnail_url: media.type,
+            width: media.width,
+            height: media.height,
+            duration: 0,
             type: media.type,
           });
+          break;
       }
-    });
-
-    const normalize: ExtractorTweet = {
-      id: data.tweetID,
-      url: data.tweetURL,
-      text: data.text,
-      created_at: data.date,
-      created_timestamp: data.date_epoch,
-      likes: data.likes,
-      retweets: data.retweets,
-      replies: data.replies,
-      author: {
-        name: data.user_name,
-        screen_name: data.user_screen_name,
-        avatar_url: data.user_profile_image_url,
-      },
-      possibly_sensitive: data.possibly_sensitive,
-      media: {
-        photos,
-        videos,
-      },
-    };
-
-    return normalize;
+    }
   }
+
+  return {
+    id: response.id,
+    url: response.url,
+    text: response.text,
+    created_at: response.created_at,
+    created_timestamp: response.created_timestamp,
+    likes: response.likes,
+    retweets: response.reposts,
+    replies: response.replies,
+    author: response.author,
+    lang: response.lang,
+    translation: response.translation,
+    possibly_sensitive: response.possibly_sensitive,
+    media: {
+      photos,
+      videos,
+    },
+  };
 }

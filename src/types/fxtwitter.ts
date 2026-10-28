@@ -56,7 +56,7 @@ export interface FxTwitterUser {
   name: string;
   screen_name: string;
   global_screen_name?: string;
-  avatar_url: string;
+  avatar_url: string | null;
   banner_url: string;
   description: string;
   location: string;
