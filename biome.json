@@ -1,10 +1,10 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "style": {
         "noParameterAssign": "error",
         "useAsConstAssertion": "error",
@@ -27,7 +27,7 @@
     "lineWidth": 80
   },
   "files": {
-    "includes": ["**", "!**/dist/**/*", "!**/app.js"],
+    "includes": ["**", "!**/dist/**/*", "!**/app.js", "!.direnv"],
     "ignoreUnknown": true
   }
 }
