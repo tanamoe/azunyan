@@ -27,7 +27,7 @@
     "lineWidth": 80
   },
   "files": {
-    "includes": ["**", "!**/dist/**/*", "!**/app.js", "!.direnv"],
+    "includes": ["**", "!**/dist/**/*", "!**/app.js", "!.direnv", "!pnpm-*"],
     "ignoreUnknown": true
   }
 }
