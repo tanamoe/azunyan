@@ -6,8 +6,7 @@
     "build": "esbuild src/index.ts --bundle --platform=node --target=node26.12.1 --format=esm --packages=external --outfile=build/app.js",
     "start": "node --env-file .env build/app.js",
     "lint": "biome lint --write .",
-    "format": "biome format --write .",
-    "prepare": "husky"
+    "format": "biome format --write ."
   },
   "author": "catou",
   "license": "ISC",

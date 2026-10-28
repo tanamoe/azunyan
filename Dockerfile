@@ -5,7 +5,6 @@ COPY . /app
 WORKDIR /app
 
 FROM base AS prod-deps
-ENV HUSKY=0
 RUN --mount=type=cache,id=pnpm,target=/var/cache/pnpm \
     pnpm install --store-dir /var/cache/pnpm --prod --frozen-lockfile
 
