@@ -8,10 +8,6 @@ export type ExtractorResponse = [OutputSchema | null, null] | [null, Error];
 type ExtractorFn = (path: string) => Promise<ExtractorResponse>;
 
 export class Bluesky {
-  #lintComplain() {
-    return 0;
-  }
-
   static normalizeUrl(path: string): [string, null] | ["", Error] {
     const url = parseURL(path);
     const supportedHosts: ReadonlyArray<string> = ["bsky.app"];

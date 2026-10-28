@@ -38,10 +38,6 @@ export type ExtractorResponse = [ExtractorTweet | null, null] | [null, Error];
 type ExtractorFn = (path: string) => Promise<ExtractorResponse>;
 
 export class Twitter {
-  private lintComplain() {
-    return 0;
-  }
-
   static normalizeUrl(path: string): [string, null] | ["", Error] {
     const url = parseURL(path);
     const supportedHosts: ReadonlyArray<string> = [
@@ -132,7 +128,7 @@ export class Twitter {
     const photos: ExtractorPhoto[] = [];
     const videos: ExtractorVideo[] = [];
 
-    data.media_extended.map((media) => {
+    data.media_extended.forEach((media) => {
       switch (media.type) {
         case "image":
           photos.push({
