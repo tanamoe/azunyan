@@ -9,7 +9,7 @@
   }: let
     overlays = [
       (final: prev: rec {
-        nodeVersion = 24;
+        nodeVersion = 26;
 
         nodejs = prev."nodejs_${toString nodeVersion}";
       })
@@ -23,7 +23,7 @@
   in {
     devShells = forEachSupportedSystem ({pkgs}: {
       default = pkgs.mkShell {
-        packages = with pkgs; [node2nix nodejs bun biome nodePackages.prettier ffmpeg];
+        packages = with pkgs; [nodejs pnpm biome prettier];
       };
     });
   };

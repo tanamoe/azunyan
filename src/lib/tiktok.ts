@@ -22,10 +22,6 @@ export type ExtractorMediaResponse = [string[] | null, null] | [null, Error];
 type ExtractorFn = (path: string) => Promise<ExtractorResponse>;
 
 export class TikTok {
-  private lintComplain() {
-    return 0;
-  }
-
   static normalizeUrl(path: string): [string, null] | ["", Error] {
     const url = parseURL(path);
     const supportedHosts: ReadonlyArray<string> = [
