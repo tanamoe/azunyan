@@ -13,10 +13,8 @@ import {
   type ComponentType,
   EmbedBuilder,
   escapeMarkdown,
-  hyperlink,
   type InteractionResponse,
   SlashCommandBuilder,
-  spoiler,
 } from "discord.js";
 import { joinURL, parseFilename } from "ufo";
 import { RemoveButton } from "../../components/removeButton.js";
@@ -282,9 +280,9 @@ async function collectRequest(
   interaction: ChatInputCommandInteraction,
   response: InteractionResponse<boolean>,
   meta: ActionRowBuilder<ButtonBuilder>,
-  actions: ActionRowBuilder<ButtonBuilder>,
-  data?: OutputSchema | null,
-  options?: BlueskyCommandOptions | null,
+  _actions: ActionRowBuilder<ButtonBuilder>,
+  _data?: OutputSchema | null,
+  _options?: BlueskyCommandOptions | null,
 ) {
   const collectorFilter: CollectorFilter<
     [
@@ -312,7 +310,7 @@ async function collectRequest(
       console.log(confirmation.customId);
       await interaction.deleteReply();
     }
-  } catch (e) {
+  } catch (_e) {
     await interaction.editReply({
       components: [meta],
     });
