@@ -1,7 +1,7 @@
 import { HTTPError } from "discord.js";
 import { ofetch } from "ofetch";
 import { parseURL } from "ufo";
-import { TikWMResponse } from "../types/tikwm.js";
+import type { TikWMResponse } from "../types/tikwm.js";
 
 export type ExtractorPost = {
   author: {

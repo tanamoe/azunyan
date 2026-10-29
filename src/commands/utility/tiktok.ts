@@ -2,25 +2,25 @@ import {
   ActionRowBuilder,
   type ButtonBuilder,
   type ButtonInteraction,
+  bold,
   type CacheType,
   type ChatInputCommandInteraction,
   type Collection,
   type CollectorFilter,
   type ComponentType,
-  escapeMarkdown,
-  type InteractionResponse,
-  SlashCommandBuilder,
   ContainerBuilder,
-  TextDisplayBuilder,
-  time,
+  escapeMarkdown,
   hyperlink,
-  bold,
-  subtext,
-  SectionBuilder,
-  ThumbnailBuilder,
+  type InteractionResponse,
   MediaGalleryBuilder,
   MediaGalleryItemBuilder,
   MessageFlags,
+  SectionBuilder,
+  SlashCommandBuilder,
+  subtext,
+  TextDisplayBuilder,
+  ThumbnailBuilder,
+  time,
 } from "discord.js";
 import { joinURL } from "ufo";
 import { RemoveButton } from "../../components/removeButton.js";
@@ -216,7 +216,7 @@ function embedAuthor(data: ExtractorPost) {
   const authorAndTime = `@${data.author.name} · ${time(data.timestamp)}`;
 
   textDisplay.setContent(
-    `${hyperlink(bold(data.author.username), joinURL("https://tiktok.com/", "@" + data.author.username))}
+    `${hyperlink(bold(data.author.username), joinURL("https://tiktok.com/", `@${data.author.username}`))}
 ${subtext(authorAndTime)}`,
   );
 
@@ -294,7 +294,7 @@ async function collectRequest(
     if (confirmation.customId === "remove") {
       await interaction.deleteReply();
     }
-  } catch (e) {
+  } catch (_e) {
     await interaction.editReply({
       components: [meta],
     });
