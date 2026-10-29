@@ -158,7 +158,7 @@ export const tiktokCommand = new SlashCommand(
         flags: MessageFlags.IsComponentsV2,
       });
 
-      await collectRequest(interaction, response, meta, actions, data, options);
+      await collectRequest(interaction, response, container);
     } catch (e) {
       await onError(e, interaction);
     }
@@ -264,10 +264,7 @@ function embedMedia(data: ExtractorPost) {
 async function collectRequest(
   interaction: ChatInputCommandInteraction,
   response: InteractionResponse<boolean>,
-  meta: ActionRowBuilder<ButtonBuilder>,
-  _actions: ActionRowBuilder<ButtonBuilder>,
-  _data?: ExtractorPost | null,
-  _options?: TikTokCommandOptions | null,
+  container: ContainerBuilder,
 ) {
   const collectorFilter: CollectorFilter<
     [
@@ -296,7 +293,8 @@ async function collectRequest(
     }
   } catch (_e) {
     await interaction.editReply({
-      components: [meta],
+      components: [container],
+      flags: MessageFlags.IsComponentsV2,
     });
   }
 }

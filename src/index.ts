@@ -6,6 +6,7 @@ import { infoCommand } from "./commands/misc/info.js";
 import { jpyCommand } from "./commands/misc/jpy.js";
 import { artworkCommand } from "./commands/utility/artwork.js";
 import { blueskyCommand } from "./commands/utility/bluesky.js";
+import { facebookCommand } from "./commands/utility/facebook.js";
 import { instagramCommand } from "./commands/utility/instagram.js";
 import { pixivCommand } from "./commands/utility/pixiv.js";
 import { tiktokCommand } from "./commands/utility/tiktok.js";
@@ -42,6 +43,7 @@ const commands = [
   instagramCommand,
   tiktokCommand,
   blueskyCommand,
+  facebookCommand,
 ];
 
 await register(commands);
