@@ -106,7 +106,7 @@ export const infoCommand = new SlashCommand(
       if (confirmation.customId === "remove") {
         await interaction.deleteReply();
       }
-    } catch (e) {
+    } catch (_e) {
       for (const button of actionRow.components) {
         if (button.data.label === "Xóa") button.setDisabled(true);
       }

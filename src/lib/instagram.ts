@@ -127,7 +127,7 @@ export class Instagram {
 
         images.push({
           url: data.url,
-          size: Number.parseInt(size),
+          size: Number.parseInt(size, 10),
         });
         i++;
       } catch (e) {

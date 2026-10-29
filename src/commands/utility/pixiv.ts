@@ -1,6 +1,5 @@
 import {
   ActionRowBuilder,
-  AttachmentBuilder,
   ButtonBuilder,
   type ButtonInteraction,
   ButtonStyle,
@@ -10,7 +9,6 @@ import {
   type CollectorFilter,
   type ComponentType,
   ContainerBuilder,
-  EmbedBuilder,
   HeadingLevel,
   heading,
   hyperlink,
@@ -24,7 +22,7 @@ import {
   ThumbnailBuilder,
 } from "discord.js";
 import { ofetch } from "ofetch";
-import { joinURL, normalizeURL, parseFilename, parseURL } from "ufo";
+import { joinURL, normalizeURL, parseURL } from "ufo";
 import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
 import type { PhixivResponse } from "../../types/phixiv.js";
@@ -223,7 +221,7 @@ ${subtext("AI Generated Content")}`);
       if (confirmation.customId === "remove") {
         await interaction.deleteReply();
       }
-    } catch (e) {
+    } catch (_e) {
       for (const component of actions.components) {
         if (component.data.id === PixivButton.DELETE)
           component.setDisabled(true);

@@ -1,18 +1,26 @@
-import translate from "@iamtraction/google-translate";
 import {
   ActionRowBuilder,
-  AttachmentBuilder,
   type ButtonBuilder,
   type ButtonInteraction,
+  bold,
   type CacheType,
   type ChatInputCommandInteraction,
   type Collection,
   type CollectorFilter,
   type ComponentType,
-  EmbedBuilder,
+  ContainerBuilder,
   escapeMarkdown,
+  hyperlink,
   type InteractionResponse,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
+  MessageFlags,
+  SectionBuilder,
   SlashCommandBuilder,
+  subtext,
+  TextDisplayBuilder,
+  ThumbnailBuilder,
+  time,
 } from "discord.js";
 import { joinURL } from "ufo";
 import { RemoveButton } from "../../components/removeButton.js";
@@ -94,9 +102,6 @@ export const tiktokCommand = new SlashCommand(
         .setRequired(false),
     ),
   async (interaction) => {
-    // default to defer the reply
-    const response = await interaction.deferReply();
-
     const meta = new ActionRowBuilder<ButtonBuilder>();
     const actions = new ActionRowBuilder<ButtonBuilder>();
 
@@ -109,13 +114,12 @@ export const tiktokCommand = new SlashCommand(
       spoiler: interaction.options.getBoolean("spoiler", false) ?? false,
     };
 
-    const [redirectedUrl] = await TikTok.redirectUrl(url);
-    const [normalizedUrl, normalizeErr] = TikTok.normalizeUrl(redirectedUrl);
+    const [normalizedUrl, normalizeErr] = TikTok.normalizeUrl(url);
     if (normalizeErr != null) {
       if (interaction.locale.match(/en.*/)) {
-        interaction.editReply("URL is invalid :<");
+        await interaction.reply("URL is invalid :<");
       } else {
-        interaction.editReply("Link không hợp lệ :<");
+        await interaction.reply("Link không hợp lệ :<");
       }
       return normalizeErr;
     }
@@ -135,7 +139,7 @@ export const tiktokCommand = new SlashCommand(
         return null;
       }
 
-      const { embeds, attachments, videos } = await buildPost(data, options);
+      const { container } = await buildPost(data, options);
 
       meta.setComponents(
         LikeCount(data.likes),
@@ -143,25 +147,22 @@ export const tiktokCommand = new SlashCommand(
         SavedCount(data.saved),
         SourceButton(url, interaction.locale),
       );
+      container.addActionRowComponents(meta);
+
+      container.setSpoiler(options.spoiler);
+
       actions.addComponents(RemoveButton(interaction.locale));
 
-      await interaction.editReply({
-        files: attachments,
-        embeds: embeds,
-        content: !options.post ? videos.join("\n") : undefined,
-        components: [meta, actions],
+      const response = await interaction.reply({
+        components: [container, actions],
+        flags: MessageFlags.IsComponentsV2,
       });
 
-      if (options.post && videos.length > 0) {
-        await interaction.followUp({
-          content: videos.join(" "),
-        });
-      }
+      await collectRequest(interaction, response, meta, actions, data, options);
     } catch (e) {
       await onError(e, interaction);
     }
 
-    await collectRequest(interaction, response, meta, actions, data, options);
     return null;
   },
 );
@@ -190,88 +191,83 @@ async function onError(
 }
 
 async function buildPost(data: ExtractorPost, options: TikTokCommandOptions) {
-  const embeds: EmbedBuilder[] = [];
-  const attachments: AttachmentBuilder[] = [];
-  const videos: string[] = [];
+  const container = new ContainerBuilder();
 
-  // build embed post
   if (options.post) {
-    const embed = new EmbedBuilder();
-    await embedPost(embed, data);
-
-    if (options.translate) {
-      await translateEmbed(embed, options.translate);
-    }
-
-    embeds.push(embed);
+    const section = embedPost(data);
+    container.addSectionComponents(section);
   }
 
+  // build media
   if (options.media) {
-    const _media = data.media;
+    const gallery = embedMedia(data);
 
-    // build media
-    if (_media) {
-      for (const media of _media) {
-        attachments.push(
-          new AttachmentBuilder(media, {
-            name: "video.mp4",
-          }).setSpoiler(options.spoiler),
-        );
-      }
+    if (gallery) {
+      container.addMediaGalleryComponents(gallery);
     }
   }
 
-  return { embeds, attachments, videos };
+  return { container };
 }
 
-async function embedPost(embed: EmbedBuilder, data: ExtractorPost) {
-  embed.setAuthor({
-    name: `${data.author.name} (@${data.author.username})`,
-    iconURL: data.author.avatar,
-    url: joinURL("https://tiktok.com/", `@${data.author.username}`),
-  });
-  embed.setColor("#ff0050");
-  embed.setFooter({
-    text: "TikTok",
-    iconURL: "https://www.tiktok.com/favicon.ico",
-  });
-  embed.setTimestamp(data.timestamp);
-  if (data.description !== "") {
-    embed.setDescription(escapeMarkdown(data.description));
-  }
+function embedAuthor(data: ExtractorPost) {
+  const textDisplay = new TextDisplayBuilder();
+
+  const authorAndTime = `@${data.author.name} · ${time(data.timestamp)}`;
+
+  textDisplay.setContent(
+    `${hyperlink(bold(data.author.username), joinURL("https://tiktok.com/", `@${data.author.username}`))}
+${subtext(authorAndTime)}`,
+  );
+
+  return textDisplay;
 }
 
-async function translateEmbed(embed: EmbedBuilder, translateLanguage: string) {
-  if (!embed.data.description || embed.data.description === "") {
-    return;
+function embedPost(data: ExtractorPost) {
+  const section = new SectionBuilder();
+
+  if (data.author.avatar) {
+    const thumbnail = new ThumbnailBuilder();
+
+    thumbnail.setURL(data.author.avatar);
+    thumbnail.setDescription(data.author.name);
+
+    section.setThumbnailAccessory(thumbnail);
   }
-  const {
-    text: translated,
-    from: {
-      language: { iso },
-    },
-  } = await translate(embed.data.description, { to: translateLanguage });
 
-  const languageName = new Intl.DisplayNames([translateLanguage], {
-    type: "language",
-  }).of(iso);
+  const textDisplay = embedAuthor(data);
 
-  const translateInfo =
-    translateLanguage === "en"
-      ? `(Translated from ${languageName} by Google)\n\n`
-      : translateLanguage === "vi"
-        ? `(Dịch từ ${languageName} bởi Google)\n\n`
-        : "";
-  embed.setDescription(translateInfo + translated);
+  textDisplay.setContent(`${textDisplay.data.content}
+
+${escapeMarkdown(data.description)}
+`);
+
+  section.addTextDisplayComponents(textDisplay);
+
+  return section;
+}
+
+function embedMedia(data: ExtractorPost) {
+  const gallery = new MediaGalleryBuilder();
+
+  const medias = data.media?.map((media) =>
+    new MediaGalleryItemBuilder().setURL(media),
+  );
+
+  if (medias) {
+    gallery.addItems(medias);
+  }
+
+  return gallery.items.length > 0 ? gallery : undefined;
 }
 
 async function collectRequest(
   interaction: ChatInputCommandInteraction,
   response: InteractionResponse<boolean>,
   meta: ActionRowBuilder<ButtonBuilder>,
-  actions: ActionRowBuilder<ButtonBuilder>,
-  data?: ExtractorPost | null,
-  options?: TikTokCommandOptions | null,
+  _actions: ActionRowBuilder<ButtonBuilder>,
+  _data?: ExtractorPost | null,
+  _options?: TikTokCommandOptions | null,
 ) {
   const collectorFilter: CollectorFilter<
     [
@@ -296,10 +292,9 @@ async function collectRequest(
       });
 
     if (confirmation.customId === "remove") {
-      console.log(confirmation.customId);
       await interaction.deleteReply();
     }
-  } catch (e) {
+  } catch (_e) {
     await interaction.editReply({
       components: [meta],
     });

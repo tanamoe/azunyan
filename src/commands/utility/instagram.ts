@@ -276,9 +276,9 @@ async function collectRequest(
   interaction: ChatInputCommandInteraction,
   response: InteractionResponse<boolean>,
   meta: ActionRowBuilder<ButtonBuilder>,
-  actions: ActionRowBuilder<ButtonBuilder>,
-  data?: ExtractorPost | null,
-  options?: InstagramCommandOptions | null,
+  _actions: ActionRowBuilder<ButtonBuilder>,
+  _data?: ExtractorPost | null,
+  _options?: InstagramCommandOptions | null,
 ) {
   const collectorFilter: CollectorFilter<
     [
@@ -306,7 +306,7 @@ async function collectRequest(
       console.log(confirmation.customId);
       await interaction.deleteReply();
     }
-  } catch (e) {
+  } catch (_e) {
     await interaction.editReply({
       components: [meta],
     });
