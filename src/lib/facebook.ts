@@ -55,9 +55,19 @@ async function extractPostViaFacebed(path: string): Promise<ExtractorResponse> {
     const description = $('[property="og:description"]').attr("content") ?? "";
     const url = $('[property="og:url"]').attr("content") ?? "";
 
-    const media = $('[property="og:image"]')
-      .map((_, image) => image.attribs.content)
-      .toArray();
+    const media: string[] = [];
+
+    $('[property="og:image"]').each((_, el) => {
+      if ("content" in el.attribs) {
+        media.push(el.attribs.content);
+      }
+    });
+
+    $('[property="og:video"]').each((_, el) => {
+      if ("content" in el.attribs) {
+        media.push(el.attribs.content);
+      }
+    });
 
     return [
       {
