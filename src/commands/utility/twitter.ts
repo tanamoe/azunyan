@@ -123,6 +123,9 @@ export const twitterCommand = new SlashCommand(
         .setRequired(false),
     ),
   async (interaction) => {
+    // default to defer the reply
+    const response = await interaction.deferReply();
+
     const meta = new ActionRowBuilder<ButtonBuilder>();
     const actions = new ActionRowBuilder<ButtonBuilder>();
 
@@ -189,7 +192,7 @@ export const twitterCommand = new SlashCommand(
 
     actions.addComponents(RemoveButton(interaction.locale));
 
-    const response = await interaction.reply({
+    await interaction.editReply({
       components: [container, actions],
       flags: MessageFlags.IsComponentsV2,
     });
