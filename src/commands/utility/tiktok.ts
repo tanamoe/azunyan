@@ -102,6 +102,9 @@ export const tiktokCommand = new SlashCommand(
         .setRequired(false),
     ),
   async (interaction) => {
+    // default to defer the reply
+    const response = await interaction.deferReply();
+
     const meta = new ActionRowBuilder<ButtonBuilder>();
     const actions = new ActionRowBuilder<ButtonBuilder>();
 
@@ -117,9 +120,9 @@ export const tiktokCommand = new SlashCommand(
     const [normalizedUrl, normalizeErr] = TikTok.normalizeUrl(url);
     if (normalizeErr != null) {
       if (interaction.locale.match(/en.*/)) {
-        await interaction.reply("URL is invalid :<");
+        await interaction.editReply("URL is invalid :<");
       } else {
-        await interaction.reply("Link không hợp lệ :<");
+        await interaction.editReply("Link không hợp lệ :<");
       }
       return normalizeErr;
     }
@@ -153,7 +156,7 @@ export const tiktokCommand = new SlashCommand(
 
       actions.addComponents(RemoveButton(interaction.locale));
 
-      const response = await interaction.reply({
+      await interaction.editReply({
         components: [container, actions],
         flags: MessageFlags.IsComponentsV2,
       });
