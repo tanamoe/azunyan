@@ -1,12 +1,8 @@
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ComponentType,
-  type ButtonInteraction,
   ButtonStyle,
-  type CacheType,
-  type Collection,
-  type CollectorFilter,
+  ComponentType,
   EmbedBuilder,
   hyperlink,
   SlashCommandBuilder,
@@ -15,8 +11,8 @@ import { ofetch } from "ofetch";
 import { logger } from "../../lib/logger.js";
 import { SlashCommand } from "../../model/command.js";
 import type { ACBExchangeRate } from "../../types/acb.js";
+import type { MastercardConversionRates } from "../../types/mastercard.js";
 import type { VCBExchangeRate } from "../../types/vcb.js";
-import { MastercardConversionRates } from "../../types/mastercard.js";
 
 export const jpyCommand = new SlashCommand(
   new SlashCommandBuilder()
@@ -120,7 +116,7 @@ export const jpyCommand = new SlashCommand(
         embed.addFields([
           {
             name: "Shinhan",
-            value: `¥${rate["R_GIBC0160_1"][0]["tt_sel_rt"]} ${hyperlink(
+            value: `¥${rate.R_GIBC0160_1[0].tt_sel_rt} ${hyperlink(
               "(source)",
               "https://online.shinhan.com.vn/global.shinhan",
             )}`,
@@ -150,7 +146,7 @@ export const jpyCommand = new SlashCommand(
       );
 
       if (mastercard) {
-        const rate = parseFloat(mastercard.data.conversionRate);
+        const rate = Number.parseFloat(mastercard.data.conversionRate);
 
         embed.addFields([
           {
@@ -183,8 +179,8 @@ export const jpyCommand = new SlashCommand(
       );
 
       if (vib) {
-        const rawRate = vib["data"]["rates"]["JPY"]["sell_transfer"];
-        const rate = 1 / parseFloat(rawRate);
+        const rawRate = vib.data.rates.JPY.sell_transfer;
+        const rate = 1 / Number.parseFloat(rawRate);
         embed.addFields([
           {
             name: "VIB",
@@ -212,15 +208,15 @@ export const jpyCommand = new SlashCommand(
       );
 
       if (vpbank) {
-        const jpy = vpbank[0]["exchangeRates"].find(
-          (currency: any) => currency["currency"] == "JPY",
+        const jpy = vpbank[0].exchangeRates.find(
+          (currency: any) => currency.currency === "JPY",
         );
 
         if (jpy) {
           embed.addFields([
             {
               name: "VPBank",
-              value: `¥${jpy["sellTransfer"]} ${hyperlink(
+              value: `¥${jpy.sellTransfer} ${hyperlink(
                 "(source)",
                 "https://www.vpbank.com.vn/ty-gia#foreign_exchange_rate",
               )}`,
