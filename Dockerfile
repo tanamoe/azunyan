@@ -13,7 +13,7 @@ RUN --mount=type=cache,id=pnpm,target=/var/cache/pnpm \
     pnpm install --store-dir /var/cache/pnpm --frozen-lockfile
 RUN pnpm run build
 
-FROM cgr.dev/chainguard/node:latest@sha256:5564bc90ca0933f9b217920d7285b5ea449d7e7406dc97782931e234475c45c5
+FROM cgr.dev/chainguard/node:latest@sha256:8828c6e74c782babb020e684f026a7747d91a0699e7f2a2163f905c47f65e4da
 COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=build /app/build /app/build
 
