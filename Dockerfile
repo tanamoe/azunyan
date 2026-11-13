@@ -1,5 +1,5 @@
 FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS base
-COPY --from=ghcr.io/pnpm/pnpm:12.20.0-alpine@sha256:20ed5f022321634b3263e1945e86cb77b4620c9fa2883824c274e8937ee7d38b /opt/pnpm /opt/pnpm
+COPY --from=ghcr.io/pnpm/pnpm:12.21.0-alpine@sha256:0251e9865e906e94d68a1267b4b4bc10e07f6350b850b4532404ee65dc1bfbb8 /opt/pnpm /opt/pnpm
 RUN for bin in pnpm pn pnpx pnx; do ln -s "/opt/pnpm/$bin" "/usr/local/bin/$bin"; done
 COPY . /app
 WORKDIR /app
