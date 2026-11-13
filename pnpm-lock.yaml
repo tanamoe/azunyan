@@ -167,8 +167,8 @@ importers:
   .:
     dependencies:
       '@atproto/api':
-        specifier: ^0.31.0
-        version: 0.31.1
+        specifier: ^0.32.0
+        version: 0.32.0
       '@atproto/identity':
         specifier: ^0.5.20
         version: 0.5.23
@@ -251,8 +251,8 @@ packages:
     resolution: {integrity: sha512-1R1nYs/nHmBcYa4yzTjk5H/46MF5nZm342Ha9kKQTOMp/fr2Yn67qD1pTXUS7L2Mx8AEf3m7Z/TTxRfnERLc8w==}
     engines: {node: '>=22'}
 
-  '@atproto/api@0.31.1':
-    resolution: {integrity: sha512-xu0YE4g6De2LqPyD4LmEDq8kdJP2asMwdumnYMjdFvochKalISC+IcH9vAmFcDqjm1TAxxoP6rNrIVyOCU7Y8g==}
+  '@atproto/api@0.32.0':
+    resolution: {integrity: sha512-2wsISZ1Gkh38aN9LLnlJXREbqkDyrMxKaaei2poTZRE75aZ068xRkSGRY7aczfKr7Gz6Vvz5ZPIAzHLrtNYeHA==}
     engines: {node: '>=22'}
 
   '@atproto/common-web@0.5.17':
@@ -1350,7 +1350,7 @@ snapshots:
 
   '@atproto-labs/pipe@0.2.5': {}
 
-  '@atproto/api@0.31.1':
+  '@atproto/api@0.32.0':
     dependencies:
       '@atproto/common-web': 0.5.17
       '@atproto/lexicon': 0.7.19
