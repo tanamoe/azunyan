@@ -355,10 +355,10 @@ async function buildTweet(
 
   // build media
   if (options.media) {
-    const gallery = await embedMedia(data);
+    const galleries = await embedMedia(data);
 
-    if (gallery) {
-      container.addMediaGalleryComponents(gallery);
+    if (galleries) {
+      container.addMediaGalleryComponents(galleries);
     }
   }
 
@@ -372,10 +372,10 @@ async function buildTweet(
 
     container.addSectionComponents(section);
 
-    const gallery = await embedMedia(data.quote);
+    const galleries = await embedMedia(data.quote);
 
-    if (gallery) {
-      container.addMediaGalleryComponents(gallery);
+    if (galleries) {
+      container.addMediaGalleryComponents(galleries);
     }
   }
 
@@ -439,8 +439,6 @@ ${escapeMarkdown(data.text)}
 }
 
 async function embedMedia(data: ExtractorTweet) {
-  const gallery = new MediaGalleryBuilder();
-
   const videos = data.media?.videos?.map((video) =>
     new MediaGalleryItemBuilder().setURL(video.url),
   );
@@ -448,13 +446,24 @@ async function embedMedia(data: ExtractorTweet) {
     new MediaGalleryItemBuilder().setURL(photo.url),
   );
 
+  const items: MediaGalleryItemBuilder[] = [];
+
   if (videos) {
-    gallery.addItems(videos);
+    items.push(...videos);
   }
 
   if (photos) {
-    gallery.addItems(photos);
+    items.push(...photos);
   }
 
-  return gallery.items.length > 0 ? gallery : undefined;
+  const size = 10;
+  const galleries = Array.from(
+    { length: Math.ceil(items.length / size) },
+    (_, i) =>
+      new MediaGalleryBuilder().addItems(
+        items.slice(i * size, i * size + size),
+      ),
+  );
+
+  return galleries.length > 0 ? galleries : undefined;
 }
