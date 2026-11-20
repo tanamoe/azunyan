@@ -195,7 +195,7 @@ importers:
         version: 3.4.2
       discord-api-types:
         specifier: ^0.38.21
-        version: 0.38.59
+        version: 0.38.60
       discord.js:
         specifier: ^14.22.1
         version: 14.28.1
@@ -927,6 +927,9 @@ packages:
 
   discord-api-types@0.38.59:
     resolution: {integrity: sha512-LZqh8gvWU/Bhl9qEVIRLeLJuaPGO7rA26IXLrXnMcjXxofh/h5UhP6notfCTj4X5kR1ogMvVgcrVYIuynY/CxQ==}
+
+  discord-api-types@0.38.60:
+    resolution: {integrity: sha512-2xPScuQP3WOf3H4EKWLzvnhlfNl8sBMD+krT8CcjMVJa6o9D/6ssOSgKPTvHyIhQDKUX+gvUJZ43U4HqE+6tsA==}
 
   discord.js@14.28.1:
     resolution: {integrity: sha512-Je5OcqgurnIUQK4vR+gQnmzOf/lNQsD6d/UkV8ZOj+bFa5zJXPyiGXlbywp2EagwshVT18y7YNQNSRd3FjYkDw==}
@@ -1942,6 +1945,8 @@ snapshots:
   destr@2.0.5: {}
 
   discord-api-types@0.38.59: {}
+
+  discord-api-types@0.38.60: {}
 
   discord.js@14.28.1:
     dependencies:
